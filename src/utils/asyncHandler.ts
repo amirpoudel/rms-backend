@@ -1,11 +1,12 @@
-const asyncHandler = function (requestHandler: any) {
-    return async (req:any, res:any, next:any) => {
+import { Request,Response,NextFunction } from "express";
+const asyncHandler = function (requestHandler: Function){
+    return async (req:Request, res:Response, next:NextFunction) => {
         try {
             await Promise.resolve(requestHandler(req, res, next));
         } catch (error) {
             next(error);
         }
-    };
+    }
 };
 
 
