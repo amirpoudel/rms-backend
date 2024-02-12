@@ -16,10 +16,14 @@ app.use(express.static("public"))
 app.use(cookieParser())
 
 
-import userRoutes from './routes/user.route'
-import menuRoutes from './routes/menu.route'
+import userRoutes from './routes/privateRoutes/user.route'
+import menuRoutes from './routes/privateRoutes/menu.route'
+import publicRouts from './routes/publicRoutes/public.route'
+app.use("/api/v1/private/user",userRoutes);
+app.use("/api/v1/private/menu",menuRoutes);
 
-app.use("/api/v1/user",userRoutes);
-app.use("/api/v1/menu",menuRoutes);
+//public routes
+app.use("/api/v1/restaurant",publicRouts);
+
 
 export default app;

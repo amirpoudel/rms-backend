@@ -1,4 +1,4 @@
-import {createRestaurant} from "../controllers/restaurant.controller"
+import {createRestaurant} from "../../controllers/restaurant.controller"
 
 import {Router} from "express"
 

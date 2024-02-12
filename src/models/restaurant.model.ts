@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 
 interface IRestaurant {
     name:string,
+    username:string,
     restaurantType:string,
     description:string,
     profileImage:string,
@@ -34,6 +35,16 @@ const restaurantSchema = new mongoose.Schema<IRestaurant>({
         lowercase: true,
         
     },
+    username: {
+        type: String,
+        trim: true,
+        lowercase: true,
+        unique: true,
+        required: [true, 'Username is required'],
+        minlength: [6, 'Username cannot be less than 6 characters'],
+        maxlength: [20, 'Username cannot be greater than 20 characters'],
+    },
+    
     restaurantType: {
         type: String,
         trim: true,

@@ -6,10 +6,15 @@ import ApiResponse from '../utils/ApiResponse';
 import ApiError from '../utils/ApiError';
 import { uploadImageToS3 } from '../utils/aws/s3.aws';
 import _ from 'lodash';
+import { convertSlug } from '../utils/helper';
+import { Restaurant } from '../models/restaurant.model';
+
 
 export const checkMenuCategory = asyncHandler(async (req: UserRequest, res: Response,next:NextFunction) => {
     const categoryId = req.params.categoryId;
-    
+    if(!categoryId){
+        return res.status(400).json(new ApiError(400, 'Category Id is required'));
+    }
     const category = await MenuCategory.findById(categoryId);
 
     if(!category){
@@ -17,6 +22,21 @@ export const checkMenuCategory = asyncHandler(async (req: UserRequest, res: Resp
     }
     next();
 });
+
+export const checkRestaurantSlug = asyncHandler(async (req: Request, res: Response,next:NextFunction) => {
+    const restaurantSlug = req.params.restaurantSlug;
+    if(!restaurantSlug){
+        return res.status(400).json(new ApiError(400, 'Restaurant Slug is required'));
+    }
+    const restaurantName = convertSlug(restaurantSlug);
+    const restaurant = await Restaurant.findOne({name:restaurantName});
+    if(!restaurant){
+        return res.status(404).json(new ApiError(404, 'Restaurant not found'));
+    }
+    req.body.restaurant = restaurant._id;
+    next();
+})
+
 
 export const createMenuCategory = asyncHandler(
     async (req: UserRequest, res: Response) => {
@@ -47,10 +67,12 @@ export const createMenuCategory = asyncHandler(
 export const getMenuCategories = asyncHandler(
     async (req: UserRequest, res: Response) => {
         const restaurantId = req.user.restaurant;
+        console.log(restaurantId)
         const categories = await MenuCategory.find({
             restaurant: restaurantId,
-            exclude: ['__v', 'restaurant', 'createdAt', 'updatedAt'],
-        });
+        },"-__v -restaurant -createdAt -updatedAt");
+        const response = await MenuCategory.find();
+        console.log(response)
 
         console.log('this is categories', categories);
 
@@ -130,7 +152,6 @@ export const createMenuItem = asyncHandler(async (req: UserRequest, res: Respons
         name: itemName,
         description: itemDescription,
         price: itemPrice,
-        imageLink: null,
         flags: {
             isVeg: isVeg || false,
             containsEggs: containsEggs || false,
@@ -138,18 +159,50 @@ export const createMenuItem = asyncHandler(async (req: UserRequest, res: Respons
     });
 
     if(itemResponse && localImage) {
-        uploadImageToS3(localImage)
-    }
+            uploadImageToS3(localImage).then(async (imageUrl):Promise<void>=> {
+                itemResponse.imageLink = imageUrl as string;
+                console.log("Image uploaded successfully", imageUrl);
+                await itemResponse.save();
+                console.log("Item saved successfully", itemResponse);
+            });
+        }
 
-    return res
-        .status(201)
-        .json(
+        return res
+            .status(201)
+            .json(
             new ApiResponse(
                 201,
                 itemResponse,
                 'Menu Item created successfully'
             )
         );
+})
+
+export const getMenuItemsPrivate = asyncHandler(async (req: UserRequest, res: Response) => {
+    
+})
+
+export const getMenuItemsPublic = asyncHandler(async (req: Request, res: Response) => {
+    const restaurant = req.body?.restaurant;
+
+    if(!restaurant){
+        return res.status(400).json(new ApiError(400, 'Restaurant Id is required'));
+    }
+    const items = await MenuItem.find({
+        restaurant: restaurant,
+    },"-__v -restaurant -createdAt -updatedAt");
+    console.log('this is items', items);
+    
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                items,
+                'Menu Items fetched successfully'
+            )
+        );
+
 })
 
 

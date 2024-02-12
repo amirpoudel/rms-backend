@@ -1,4 +1,4 @@
-import {loginUser, registerUserWithRestaurant} from "../controllers/user.controller";
+import {loginUser, registerUserWithRestaurant} from "../../controllers/user.controller";
 
 
 import {Router} from "express"
