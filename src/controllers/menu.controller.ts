@@ -30,6 +30,7 @@ export const checkRestaurantSlug = asyncHandler(async (req: Request, res: Respon
     }
     const restaurantName = convertSlug(restaurantSlug);
     const restaurant = await Restaurant.findOne({name:restaurantName});
+   
     if(!restaurant){
         return res.status(404).json(new ApiError(404, 'Restaurant not found'));
     }
@@ -183,14 +184,15 @@ export const getMenuItemsPrivate = asyncHandler(async (req: UserRequest, res: Re
 })
 
 export const getMenuItemsPublic = asyncHandler(async (req: Request, res: Response) => {
+    console.log("I am Here Brooooo")
     const restaurant = req.body?.restaurant;
-
+    
     if(!restaurant){
         return res.status(400).json(new ApiError(400, 'Restaurant Id is required'));
     }
     const items = await MenuItem.find({
         restaurant: restaurant,
-    },"-__v -restaurant -createdAt -updatedAt");
+    },"-__v -restaurant -createdAt -updatedAt").populate({path:'category',select:'name -_id'});
     console.log('this is items', items);
     
     return res
