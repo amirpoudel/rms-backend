@@ -6,7 +6,8 @@ import ApiResponse from '../utils/ApiResponse';
 import ApiError from '../utils/ApiError';
 import { deleteImageFromS3, uploadImageToS3 } from '../utils/aws/s3.aws';
 import _ from 'lodash';
-import { checkMenuCategoryService, checkMenuItemService, checkRestaurantSlugService, createMenuCategoryService, deleteMenuCategoryService, getMenuService, updateMenuCategoryService } from '../services/menu.service';
+import { checkMenuCategoryService, checkMenuItemService, checkRestaurantSlugService, createMenuCategoryService, createMenuItemService, deleteMenuCategoryService, getMenuService, updateMenuCategoryService, updateMenuItemImageService, updateMenuItemService } from '../services/menu.service';
+import { Schema } from 'mongoose';
 
 
 
@@ -179,9 +180,9 @@ export const createMenuItem = asyncHandler(async (req: UserRequest, res: Respons
             );
     }
 
-    const itemResponse = await MenuItem.create({
+    const itemResponse = await createMenuItemService({
         restaurant: restaurantId,
-        category: categoryId,
+        category: new Schema.Types.ObjectId(categoryId),
         name: itemName,
         description: itemDescription,
         price: itemPrice,
@@ -191,14 +192,16 @@ export const createMenuItem = asyncHandler(async (req: UserRequest, res: Respons
         },
     });
 
-    if(itemResponse && localImage) {
-            uploadImageToS3(localImage).then(async (imageUrl):Promise<void>=> {
-                itemResponse.imageLink = imageUrl as string;
-                console.log("Image uploaded successfully", imageUrl);
-                await itemResponse.save();
-                console.log("Item saved successfully", itemResponse);
-            });
-        }
+    if (itemResponse && localImage) {
+        uploadImageToS3(localImage).then(async (imageUrl): Promise<void> => {
+            itemResponse.imageLink = imageUrl as string;
+            console.log("Image uploaded successfully", imageUrl);
+            if (itemResponse._id) {
+                updateMenuItemImageService(itemResponse._id, imageUrl as string);
+            }
+            console.log("Item saved successfully", itemResponse);
+        });
+    }
 
         return res
             .status(201)
@@ -221,14 +224,18 @@ export const updateMenuItem = asyncHandler(async (req:UserRequest,res:Response) 
         containsEggs,
     } = req.body;
 
-    const updatedItem = await MenuItem.findByIdAndUpdate(itemId,{
-        name:itemName,
-        description:itemDescription,
-        price:itemPrice,
-        flags:{
-            isVeg:isVeg || false,
-            containsEggs:containsEggs || false,
-        }
+    if(!itemId){
+        throw new ApiError(400, 'Item Id is required');
+    }
+    const updatedItem = await updateMenuItemService(new Schema.Types.ObjectId(itemId),{
+        name: itemName,
+        description: itemDescription,
+        price: itemPrice,
+        flags: {
+            isVeg: isVeg || false,
+            containsEggs: containsEggs || false,
+        },
+        
     })
 
     return res.status(200).json(new ApiResponse(200,updatedItem,'Menu Item updated successfully'))

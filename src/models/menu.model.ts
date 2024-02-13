@@ -11,18 +11,18 @@ export interface IMenuCategory {
 }
 
 export interface IMenuItem{
-    restaurant:mongoose.Schema.Types.ObjectId,
-    category:mongoose.Schema.Types.ObjectId,
+    restaurant?:mongoose.Schema.Types.ObjectId,
+    category?:mongoose.Schema.Types.ObjectId,
     name:string,
     price:number,
-    discountPercentage:number,
+    discountPercentage?:number,
     description:string,
-    flags:{
-        isVeg:boolean,
-        containsEggs:boolean,
-        isSpecial:boolean,
-        isRecommended:boolean,
-        isAvailable:boolean,
+    flags?:{
+        isVeg?:boolean,
+        containsEggs?:boolean,
+        isSpecial?:boolean,
+        isRecommended?:boolean,
+        isAvailable?:boolean,
     },
     imageLink?: string,
 }

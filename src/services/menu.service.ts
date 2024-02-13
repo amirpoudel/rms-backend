@@ -1,10 +1,24 @@
 import mongoose, {Schema} from "mongoose";
 import { redisClient } from "../config/redis.config";
-import { IMenuCategory, MenuCategory, MenuItem } from "../models/menu.model";
+import { IMenuCategory, IMenuItem, MenuCategory, MenuItem } from "../models/menu.model";
 import { convertSlug } from "../utils/helper";
 
 interface RestaurantSlugResponse {
     _id: string;
+}
+interface MenuItemType extends IMenuItem {
+
+    _id?: mongoose.Schema.Types.ObjectId;
+    
+    
+    
+}
+interface MenuCategoryType extends IMenuCategory {
+    restaurant:mongoose.Schema.Types.ObjectId;
+
+    _id?: mongoose.Schema.Types.ObjectId;
+    
+
 }
 
 
@@ -80,7 +94,7 @@ export const checkRestaurantSlugService = async function (slug:string):Promise<R
 }
 
 
-export const createMenuCategoryService = async function (data:IMenuCategory):Promise<IMenuCategory> {
+export const createMenuCategoryService = async function (data:MenuCategoryType):Promise<MenuCategoryType> {
     try {
         const category = await MenuCategory.create({
             restaurant: data.restaurant,
@@ -88,14 +102,14 @@ export const createMenuCategoryService = async function (data:IMenuCategory):Pro
             description:data.description,
         });
 
-        return category;
+        return category as unknown as MenuCategoryType;
     } catch (error) {
         throw error;
         
  }
 }
 
-export const getMenuService = async function(restaurant:string) {
+export const getMenuService = async function(restaurant:string):Promise<any[]> {  
 
     try {
         const cachedMenu = await redisClient.get(`menu:${restaurant}`);
@@ -137,7 +151,7 @@ export const getMenuCategoriesService = async function(restaurant:Schema.Types.O
 }
 
 
-export const updateMenuCategoryService = async function (categoryId:string,data:IMenuCategory):Promise<IMenuCategory> {
+export const updateMenuCategoryService = async function (categoryId:string,data:IMenuCategory):Promise<MenuCategoryType> {
 
     try {
         const category = await MenuCategory.findOneAndUpdate({
@@ -153,7 +167,7 @@ export const updateMenuCategoryService = async function (categoryId:string,data:
         //remove from redis 
         redisClient.del(`menu:caategory:${data.restaurant}`);
 
-        return category;
+        return category as unknown as MenuCategoryType;
     } catch (error) {
         throw error;
     }
@@ -187,4 +201,55 @@ export const deleteMenuCategoryService = async function (categoryId:string,resta
     }
 
 }
+
+//todo add redis
+export const createMenuItemService = async function (data:IMenuItem):Promise<MenuItemType> {
+
+    try {
+        const item = await MenuItem.create(data);
+        //remove from redis
+
+        return item as unknown as MenuItemType;
+    } catch (error) {
+        throw error;
+    }
+}
+
+//todo add redis
+export const updateMenuItemService = async function (itemId:Schema.Types.ObjectId,data:IMenuItem):Promise<MenuItemType> {
+    
+        try {
+            const item = await MenuItem.findOneAndUpdate({
+                _id:itemId,
+            },data,{new:true});
+            if(!item){
+                throw new Error("Menu Item not found");
+            }
+            return item as unknown as MenuItemType;
+        } catch (error) {
+            throw error;
+        }
+}
+
+export const updateMenuItemImageService = async function (itemId:Schema.Types.ObjectId,imageLink:string):Promise<MenuItemType>{
+    try {
+        const item = await MenuItem.findByIdAndUpdate({
+            _id:itemId
+        },{
+            imageLink:imageLink
+        },{new:true});
+        if(!item){
+            throw new Error("Menu Item not found");
+        }
+        
+        return item as unknown as MenuItemType;
+    } catch (error) {
+        throw error;
+    }
+}
+
+
+
+
+
 
