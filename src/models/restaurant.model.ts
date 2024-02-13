@@ -42,7 +42,7 @@ const restaurantSchema = new mongoose.Schema<IRestaurant>({
         unique: true,
         required: [true, 'Username is required'],
         minlength: [6, 'Username cannot be less than 6 characters'],
-        maxlength: [20, 'Username cannot be greater than 20 characters'],
+        maxlength: [50, 'Username cannot be greater than 50 characters'],
     },
     
     restaurantType: {

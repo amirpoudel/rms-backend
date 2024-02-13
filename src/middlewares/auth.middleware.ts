@@ -21,7 +21,7 @@ export const authenticateUser = asyncHandler( async (req:UserRequest, res:Respon
         // can find user form db and attach to req.user
         req.user = {
             _id: decode._id,
-            restaurant: decode.restaurant,
+            restaurant: decode.restaurant ,
             email: decode.email,
             name: decode.name,
             role: decode.role,

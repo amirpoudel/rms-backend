@@ -2,14 +2,15 @@
 import mongoose from "mongoose";
 //import { deleteFromCloudinary, deleteMultipleFromCloudinary } from "../../utils/cloudinary.js";
 
-interface IMenuCategory {
+export interface IMenuCategory {
+   
     restaurant:mongoose.Schema.Types.ObjectId,
     name:string,
     description:string,
-    imageLink: string[],
+    imageLink?: string[],
 }
 
-interface IMenuItem{
+export interface IMenuItem{
     restaurant:mongoose.Schema.Types.ObjectId,
     category:mongoose.Schema.Types.ObjectId,
     name:string,
@@ -23,7 +24,7 @@ interface IMenuItem{
         isRecommended:boolean,
         isAvailable:boolean,
     },
-    imageLink: string,
+    imageLink?: string,
 }
 
 const menuCategorySchema = new mongoose.Schema<IMenuCategory>({

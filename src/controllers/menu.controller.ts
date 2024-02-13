@@ -6,26 +6,22 @@ import ApiResponse from '../utils/ApiResponse';
 import ApiError from '../utils/ApiError';
 import { deleteImageFromS3, uploadImageToS3 } from '../utils/aws/s3.aws';
 import _ from 'lodash';
-import { convertSlug } from '../utils/helper';
-import { Restaurant } from '../models/restaurant.model';
-import { redisClient } from '../config/redis.config';
-import { getMenuService } from '../services/menu.service';
+import { checkMenuCategoryService, checkMenuItemService, checkRestaurantSlugService, createMenuCategoryService, deleteMenuCategoryService, getMenuService, updateMenuCategoryService } from '../services/menu.service';
+
 
 
 export const checkMenuCategory = asyncHandler(async (req: UserRequest, res: Response,next:NextFunction) => {
     // this for private request for every authenticate route have resutarant id
     const categoryId = req.params.categoryId;
-    const restaurantId = req.user.restaurant;
+    const restaurant = req.user.restaurant ;
     if(!categoryId){
-        return res.status(400).json(new ApiError(400, 'Category Id is required'));
+        throw new ApiError(400, 'Category Id is required');
     }
-    const category = await MenuCategory.findById(categoryId);
-    if(!category){
-        return res.status(404).json(new ApiError(404, 'Category not found'));
+    const category = await checkMenuCategoryService(categoryId, restaurant);
+    if(category===false){
+        throw new ApiError(404, 'Category not found');
     }
-    if(category.restaurant.toString()!==restaurantId.toString()){
-        return res.status(403).json(new ApiError(403, 'You are not allowed to access this category'));
-    }
+    
     next();
 });
 
@@ -35,12 +31,9 @@ export const checkMenuItem = asyncHandler(async (req: UserRequest, res: Response
     if(!itemId){
         return res.status(400).json(new ApiError(400, 'Item Id is required'));
     }
-    const item = await MenuItem.findById(itemId);
-    if(!item){
+    const item = await checkMenuItemService(itemId,restaurantId);
+    if(item===false){
         return res.status(404).json(new ApiError(404, 'Item not found'));
-    }
-    if(item.restaurant.toString()!==restaurantId.toString()){
-        return res.status(403).json(new ApiError(403, 'You are not allowed to access this item'));
     }
     next();
 })
@@ -50,20 +43,12 @@ export const checkRestaurantSlug = asyncHandler(async (req: Request, res: Respon
     if(!restaurantSlug){
         return res.status(400).json(new ApiError(400, 'Restaurant Slug is required'));
     }
-    const restaurantName = convertSlug(restaurantSlug);
-    const cachedRestaurantId = await redisClient.get(`restaurantId:${restaurantSlug}`);
-    
-    if(cachedRestaurantId){
-        console.log("I am Cachedddddd",cachedRestaurantId)
-        req.body.restaurant = cachedRestaurantId;
-        return next();
-    }
-    const restaurant = await Restaurant.findOne({name:restaurantName});
+    const restaurant = await checkRestaurantSlugService(restaurantSlug);
 
     if(!restaurant){
         return res.status(404).json(new ApiError(404, 'Restaurant not found'));
     }
-    redisClient.set(`restaurantId:${restaurantSlug}`, restaurant?._id.toString());
+    
     req.body.restaurant = restaurant._id;
 
     next();
@@ -77,11 +62,12 @@ export const createMenuCategory = asyncHandler(
         console.log('this is restaurantId', restaurantId);
         console.log('this is categoryName', categoryName);
         console.log('this is categoryDescription', categoryDescription);
-        const category = await MenuCategory.create({
+        const category = await createMenuCategoryService({
             restaurant: restaurantId,
-            name:categoryName,
-            description:categoryDescription,
-        });
+            name: categoryName as string,
+            description: categoryDescription as string,
+            imageLink: []
+        })
         let response = _.omit(category, ['__v', 'restaurant']);
 
         return res
@@ -100,14 +86,10 @@ export const getMenuCategories = asyncHandler(
     async (req: UserRequest, res: Response) => {
         const restaurantId = req.user.restaurant;
         console.log(restaurantId)
-        const categories = await MenuCategory.find({
-            restaurant: restaurantId,
-        },"-__v -restaurant -createdAt -updatedAt");
-        const response = await MenuCategory.find();
-        console.log(response)
-
-        console.log('this is categories', categories);
-
+        const categories = await MenuCategory.find({ restaurant: restaurantId });
+        if(categories.length===0){
+            throw new ApiError(404,'No Menu Categories found');
+        }
         return res
             .status(200)
             .json(
@@ -124,6 +106,9 @@ export const updateMenuCategory = asyncHandler(async (req: UserRequest, res: Res
         const { categoryId } = req.params;
         const { categoryName, categoryDescription } = req.body;
         const restaurantId = req.user.restaurant;
+        if(!categoryId){
+            throw new ApiError(400, 'Category Id is required');
+        }
 
         if (!categoryName || !categoryDescription) {
             return res
@@ -136,11 +121,12 @@ export const updateMenuCategory = asyncHandler(async (req: UserRequest, res: Res
                 );
         }
 
-        const updateCategory = await MenuCategory.findOneAndUpdate(
-            { _id: categoryId, restaurant: restaurantId },
-            { categoryName, categoryDescription },
-            { new: true }
-        );
+        const updateCategory = await updateMenuCategoryService(categoryId,{
+            restaurant: restaurantId,
+            name: categoryName,
+            description: categoryDescription,
+
+        })
 
         return res
             .status(200)
@@ -158,13 +144,14 @@ export const deleteMenuCategory = asyncHandler(async (req: UserRequest, res: Res
     // check if category is empty then only delete it 
     const { categoryId } = req.params;
     const restaurantId = req.user.restaurant;
-    
-    const countItems = await MenuItem.countDocuments({category:categoryId,restaurant:restaurantId});
-    console.log(countItems);
-    if(countItems>0){
-       throw new ApiError(404,'Category is not empty');
+    if(!categoryId){
+        return res.status(400).json(new ApiError(400,'Category Id is required'));
     }
-    await MenuCategory.findByIdAndDelete(categoryId);
+    
+    const isDeleted = await deleteMenuCategoryService(categoryId,restaurantId);
+    if(isDeleted===false){
+        throw new ApiError(400,'Category is not empty');
+    }
     return res.status(200).json(new ApiResponse(200,true,'Menu Category deleted successfully'))
 })
 
