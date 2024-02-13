@@ -6,7 +6,22 @@ import { USER_ROLE } from "../constant";
 import ApiResponse from "../utils/ApiResponse";
 import mongoose from "mongoose";
 import ApiError from "../utils/ApiError";
+import { convertSlug } from "../utils/helper";
 
+export const checkRestaurantSlug = asyncHandler(async (req: Request, res: Response,next:NextFunction) => {
+    const restaurantSlug = req.params.restaurantSlug;
+    if(!restaurantSlug){
+        return res.status(400).json(new ApiError(400, 'Restaurant Slug is required'));
+    }
+    const restaurantName = convertSlug(restaurantSlug);
+    const restaurant = await Restaurant.findOne({name:restaurantName});
+   
+    if(!restaurant){
+        return res.status(404).json(new ApiError(404, 'Restaurant not found'));
+    }
+    req.body.restaurant = restaurant._id;
+    next();
+})
 
 export const createRestaurant = asyncHandler(async (req: Request, res: Response) => {
     const { restaurantName, ownerName, ownerEmail, ownerPhone, ownerPassword } = req.body;

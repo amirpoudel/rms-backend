@@ -19,6 +19,11 @@ app.use(cookieParser())
 import userRoutes from './routes/privateRoutes/user.route'
 import menuRoutes from './routes/privateRoutes/menu.route'
 import publicRouts from './routes/publicRoutes/public.route'
+import { authenticateUser } from './middlewares/auth.middleware';
+
+//authenticate for private routes 
+app.use("/api/v1/private",authenticateUser)
+
 app.use("/api/v1/private/user",userRoutes);
 app.use("/api/v1/private/menu",menuRoutes);
 

@@ -10,8 +10,14 @@ const s3Client = new S3Client({
 
 })
 
+function extractKeyFromS3URL(url:string):string{
+    const urlParts = url.split('/');
+    return urlParts[urlParts.length-1] as string;
+}
 
-export async function uploadImageToS3(file:any):Promise<string|null>{
+
+
+export async function uploadImageToS3(file:any , existingLink:string|null=null):Promise<string|null>{
     // upload image to 
     console.log(file)
     const uploadParams = {
@@ -19,6 +25,9 @@ export async function uploadImageToS3(file:any):Promise<string|null>{
         Key:file.originalname,
         Body:fs.createReadStream(file.path),
         ContentType:file.mimetype,
+    }
+    if(existingLink){
+        uploadParams.Key = extractKeyFromS3URL(existingLink);
     }
 
     try {
@@ -36,3 +45,21 @@ export async function uploadImageToS3(file:any):Promise<string|null>{
     }
 
 }
+
+export async function deleteImageFromS3(link:string):Promise<boolean>{
+    const key = extractKeyFromS3URL(link);
+    const deleteParams = {
+        Bucket:process.env.AWS_PUBLIC_BUCKET_NAME||'',
+        Key:key,
+    }
+    try {
+        const s3Response = await s3Client.send(new PutObjectCommand(deleteParams));
+        return true;
+    } catch (error) {
+        return false;
+    }
+}
+
+
+
+

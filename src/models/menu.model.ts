@@ -115,39 +115,6 @@ const menuItemSchema = new mongoose.Schema<IMenuItem>({
 })
 
 
-
-
-// middleware
-
-
-
-// menuCategorySchema.post("remove",async function (doc,next){
-//     // need to complete this logic
-//     try {
-//         console.log("This is Menu Category FROM MIDDLEWARE",doc)
-//         console.log("Deleting menu items of category",doc._id);
-//         await mongoose.model("MenuItem").deleteMany({categoryId:doc._id,restaurantId:doc.restaurantId});
-//         next();
-//     } catch (error) {
-//         next(error)
-//     }
-//     if(doc.imageLink){
-//         console.log("Deleting from Cloudinary",doc.imageLink)
-//         deleteMultipleFromCloudinary(doc.imageLink);
-//     }
-// })
-
-// menuItemSchema.post("remove",async function (doc,next){
-//     if(doc.imageLink){
-//         console.log("Deleting from Cloudinary",doc.imageLink)
-//         deleteFromCloudinary(doc.imageLink);
-//     }
-// })
-
-
-
-
-
 const MenuCategory = mongoose.model<IMenuCategory>("MenuCategory",menuCategorySchema);
 const MenuItem = mongoose.model<IMenuItem>("MenuItem",menuItemSchema);
 
