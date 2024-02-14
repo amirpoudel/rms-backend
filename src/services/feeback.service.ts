@@ -1,4 +1,5 @@
 
+import { Schema } from 'mongoose';
 import { redisClient } from '../config/redis.config';
 import {Feedback,IFeedback} from '../models/feedback.model';
 
@@ -16,15 +17,15 @@ export const createFeedbackService = async function(data:IFeedback):Promise<IFee
 }
 
 
-export const getFeedbacksService = async function(restaurantId:string):Promise<IFeedback[]> {
+export const getFeedbacksService = async function(restaurantId:Schema.Types.ObjectId):Promise<IFeedback[]> {
 
     try {
-        const feedbacksCache = await redisClient.hGet("feedbacks",restaurantId);
+        const feedbacksCache = await redisClient.hGet("feedbacks",restaurantId.toString());
         if(feedbacksCache){
             return JSON.parse(feedbacksCache);
         }
         const feedbacks = await Feedback.find({restaurant:restaurantId});
-        redisClient.hSet("feedbacks",restaurantId,JSON.stringify(feedbacks));
+        redisClient.hSet("feedbacks",restaurantId.toString(),JSON.stringify(feedbacks));
         return feedbacks;
     } catch (error) {
         throw error;
