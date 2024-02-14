@@ -1,7 +1,7 @@
 import {Router } from "express";
 const router = Router();
 import * as menuController from "../../controllers/menu.controller";
-import { authenticateUser } from "../../middlewares/auth.middleware";
+
 import {upload} from "../../middlewares/multer.middleware"
 
 router.param("categoryId",menuController.checkMenuCategory);
@@ -13,6 +13,7 @@ router.route("/category").post(menuController.createMenuCategory)
 
 router.route("/category/:categoryId").patch(menuController.updateMenuCategory)
                                     .delete(menuController.deleteMenuCategory)
+
 
 router.route("/:categoryId/item").post(upload.single('image'),menuController.createMenuItem)
 router.route("/item/:itemId").patch(menuController.updateMenuItem)

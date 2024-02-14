@@ -113,7 +113,7 @@ export const loginUserService = async function (data:UserLogin):Promise<UserLogi
    }
 }
 
-export const logoutUserService = async function (userId:mongoose.Types.ObjectId):Promise<boolean>{
+export const logoutUserService = async function (userId:mongoose.Schema.Types.ObjectId):Promise<boolean>{
     try {
         const user = await User.findById(userId);
         if(!user) {

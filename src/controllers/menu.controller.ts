@@ -6,8 +6,9 @@ import ApiResponse from '../utils/ApiResponse';
 import ApiError from '../utils/ApiError';
 import { deleteImageFromS3, uploadImageToS3 } from '../utils/aws/s3.aws';
 import _ from 'lodash';
-import { checkMenuCategoryService, checkMenuItemService, checkRestaurantSlugService, createMenuCategoryService, createMenuItemService, deleteMenuCategoryService, getMenuService, updateMenuCategoryService, updateMenuItemImageService, updateMenuItemService } from '../services/menu.service';
+import { checkMenuCategoryService, checkMenuItemService, checkRestaurantSlugService, createMenuCategoryService, createMenuItemService, deleteMenuCategoryService, getMenuCategoriesService, getMenuService, updateMenuCategoryService, updateMenuItemImageService, updateMenuItemService } from '../services/menu.service';
 import { Schema } from 'mongoose';
+import { redisClient } from '../config/redis.config';
 
 
 
@@ -19,6 +20,7 @@ export const checkMenuCategory = asyncHandler(async (req: UserRequest, res: Resp
         throw new ApiError(400, 'Category Id is required');
     }
     const category = await checkMenuCategoryService(categoryId, restaurant);
+    
     if(category===false){
         throw new ApiError(404, 'Category not found');
     }
@@ -42,12 +44,13 @@ export const checkMenuItem = asyncHandler(async (req: UserRequest, res: Response
 export const checkRestaurantSlug = asyncHandler(async (req: Request, res: Response,next:NextFunction) => {
     const restaurantSlug = req.params.restaurantSlug;
     if(!restaurantSlug){
-        return res.status(400).json(new ApiError(400, 'Restaurant Slug is required'));
+        throw new ApiError(400, 'Restaurant Slug is required');
     }
     const restaurant = await checkRestaurantSlugService(restaurantSlug);
+    console.log(restaurant);
 
     if(!restaurant){
-        return res.status(404).json(new ApiError(404, 'Restaurant not found'));
+       throw new ApiError(404, 'Restaurant not found');
     }
     
     req.body.restaurant = restaurant._id;
@@ -60,17 +63,14 @@ export const createMenuCategory = asyncHandler(
     async (req: UserRequest, res: Response) => {
         const { categoryName, categoryDescription } = req.body;
         const restaurantId = req.user.restaurant;
-        console.log('this is restaurantId', restaurantId);
-        console.log('this is categoryName', categoryName);
-        console.log('this is categoryDescription', categoryDescription);
+
         const category = await createMenuCategoryService({
             restaurant: restaurantId,
             name: categoryName as string,
             description: categoryDescription as string,
-            imageLink: []
+           
         })
         let response = _.omit(category, ['__v', 'restaurant']);
-
         return res
             .status(201)
             .json(
@@ -87,7 +87,8 @@ export const getMenuCategories = asyncHandler(
     async (req: UserRequest, res: Response) => {
         const restaurantId = req.user.restaurant;
         console.log(restaurantId)
-        const categories = await MenuCategory.find({ restaurant: restaurantId });
+        const categories = await getMenuCategoriesService(restaurantId);
+        console.log(categories);
         if(categories.length===0){
             throw new ApiError(404,'No Menu Categories found');
         }
@@ -111,15 +112,8 @@ export const updateMenuCategory = asyncHandler(async (req: UserRequest, res: Res
             throw new ApiError(400, 'Category Id is required');
         }
 
-        if (!categoryName || !categoryDescription) {
-            return res
-                .status(400)
-                .json(
-                    new ApiError(
-                        400,
-                        'Category name and description are required'
-                    )
-                );
+        if (!categoryName && !categoryDescription) {
+            throw new ApiError(400, 'Category Name Or Description are required');
         }
 
         const updateCategory = await updateMenuCategoryService(categoryId,{
@@ -179,34 +173,22 @@ export const createMenuItem = asyncHandler(async (req: UserRequest, res: Respons
                 )
             );
     }
+    const uploadedImageURL = localImage ? await uploadImageToS3(localImage) : null;
 
     const itemResponse = await createMenuItemService({
         restaurant: restaurantId,
-        category: new Schema.Types.ObjectId(categoryId),
+        category: categoryId as unknown as Schema.Types.ObjectId,
         name: itemName,
         description: itemDescription,
         price: itemPrice,
+        imageLink:uploadedImageURL,
         flags: {
             isVeg: isVeg || false,
             containsEggs: containsEggs || false,
         },
     });
 
-    if (itemResponse && localImage) {
-        uploadImageToS3(localImage).then(async (imageUrl): Promise<void> => {
-            itemResponse.imageLink = imageUrl as string;
-            console.log("Image uploaded successfully", imageUrl);
-            if (itemResponse._id) {
-                updateMenuItemImageService(itemResponse._id, imageUrl as string);
-            }
-            console.log("Item saved successfully", itemResponse);
-        });
-    }
-
-        return res
-            .status(201)
-            .json(
-            new ApiResponse(
+    return res.status(201).json(new ApiResponse(
                 201,
                 itemResponse,
                 'Menu Item created successfully'
@@ -215,7 +197,7 @@ export const createMenuItem = asyncHandler(async (req: UserRequest, res: Respons
 })
 
 export const updateMenuItem = asyncHandler(async (req:UserRequest,res:Response) => {
-    const { categoryId, itemId } = req.params;
+    const {itemId } = req.params;
     const {
         itemName,
         itemDescription,
@@ -227,7 +209,7 @@ export const updateMenuItem = asyncHandler(async (req:UserRequest,res:Response) 
     if(!itemId){
         throw new ApiError(400, 'Item Id is required');
     }
-    const updatedItem = await updateMenuItemService(new Schema.Types.ObjectId(itemId),{
+    const updatedItem = await updateMenuItemService(itemId,{
         name: itemName,
         description: itemDescription,
         price: itemPrice,
@@ -274,9 +256,7 @@ export const deleteMenuItem = asyncHandler(async (req:UserRequest,res:Response)=
     return res.status(200).json(new ApiResponse(200,true,'Menu Item deleted successfully'))
 })
 
-export const getMenuItemsPrivate = asyncHandler(async (req: UserRequest, res: Response) => {
-    
-})
+
 
 //todo if not menu found case
 export const getMenuItemsPublic = asyncHandler(async (req: Request, res: Response) => {
@@ -288,6 +268,7 @@ export const getMenuItemsPublic = asyncHandler(async (req: Request, res: Respons
     }
 
     const response = await getMenuService(restaurant);
+
     
     return res
         .status(200)

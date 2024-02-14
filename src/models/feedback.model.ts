@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-interface IFeedback {
+export interface IFeedback {
     restaurant:mongoose.Schema.Types.ObjectId,
     feedback:string,
     rating:number,
@@ -20,7 +20,6 @@ const feedbackSchema = new mongoose.Schema<IFeedback>({
         type:Number,
     }
 })
-
 
 export const Feedback = mongoose.model("Feedback",feedbackSchema);
 

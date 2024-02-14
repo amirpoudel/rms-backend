@@ -3,14 +3,15 @@ import mongoose from "mongoose";
 //import { deleteFromCloudinary, deleteMultipleFromCloudinary } from "../../utils/cloudinary.js";
 
 export interface IMenuCategory {
-   
+   _id?: mongoose.Schema.Types.ObjectId;
     restaurant:mongoose.Schema.Types.ObjectId,
     name:string,
     description:string,
-    imageLink?: string[],
+    imageLink?: string[] | [],
 }
 
 export interface IMenuItem{
+    _id?: mongoose.Schema.Types.ObjectId;
     restaurant?:mongoose.Schema.Types.ObjectId,
     category?:mongoose.Schema.Types.ObjectId,
     name:string,
@@ -24,7 +25,7 @@ export interface IMenuItem{
         isRecommended?:boolean,
         isAvailable?:boolean,
     },
-    imageLink?: string,
+    imageLink?: string|null,
 }
 
 const menuCategorySchema = new mongoose.Schema<IMenuCategory>({

@@ -7,3 +7,8 @@ export function convertToSlug(text:string):string {
         .toLowerCase()
         .replace(/ /g, "-")
 }
+
+
+export function convertToPlainObject<T>(data:T):T{
+    return JSON.parse(JSON.stringify(data));
+}

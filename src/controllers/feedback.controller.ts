@@ -1,4 +1,5 @@
 import { Feedback } from "../models/feedback.model";
+import { createFeedbackService } from "../services/feeback.service";
 import { UserRequest } from "../types/express.type";
 import ApiResponse from "../utils/ApiResponse";
 import asyncHandler from "../utils/asyncHandler";
@@ -12,7 +13,7 @@ export const createFeedback = asyncHandler(async (req:Request, res: Response) =>
         return res.status(400).json({message:"All fields are required"});
     }
 
-    const feedbackResponse = await Feedback.create({
+    const feedbackResponse = await createFeedbackService({
         restaurant:resutarantId,
         feedback,
         rating
