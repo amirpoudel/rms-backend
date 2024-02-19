@@ -12,15 +12,23 @@ interface RestaurantSlugResponse {
 export const checkMenuCategoryService = async function (categoryId:string,restaurantId:mongoose.Schema.Types.ObjectId):Promise<boolean> {
 
     try {
-       const cachedMenuCategory = await redisClient.hGet(`menu:category`,`${restaurantId}:${categoryId}`);
-       if(cachedMenuCategory){
+       //const cachedMenuCategory = await redisClient.hGet(`menu:category`,`${restaurantId}:${categoryId}`);
+       const cachedMenuCategory = await redisClient.get(`menu:category:${categoryId}`);
+        console.log(cachedMenuCategory);
+
+       if(cachedMenuCategory && restaurantId === JSON.parse(cachedMenuCategory).restaurant){
             return true;
         }
         const category = await MenuCategory.findById(categoryId);
         if(!category){
             return false;
         }
-        redisClient.hSet(`menu:category`,`${restaurantId}:${categoryId}`,JSON.stringify(category));
+        //redisClient.hSet(`menu:category`,`${restaurantId}:${categoryId}`,JSON.stringify(category));
+        let cachedResponse = {
+            restaurant:category.restaurant,
+        }
+        console.log("caching the data",cachedResponse);
+        redisClient.set(`menu:category:${categoryId}`,JSON.stringify(cachedResponse));
         return true;
     } catch (error) {
         throw error;
@@ -31,7 +39,7 @@ export const checkMenuCategoryService = async function (categoryId:string,restau
 export const checkMenuItemService = async function (itemId:string,restaurantId:mongoose.Schema.Types.ObjectId):Promise<boolean> {
 
     try {
-        const cachedMenuItem = await redisClient.hGet(`menu:item`,`${restaurantId}:${itemId}`);
+        const cachedMenuItem = await redisClient.get(`menu:item:${itemId}`);
         if(cachedMenuItem && restaurantId === JSON.parse(cachedMenuItem).restaurant){
             return true;
         }
@@ -42,7 +50,11 @@ export const checkMenuItemService = async function (itemId:string,restaurantId:m
         if(!item){
             return false;
         }
-        redisClient.hSet(`menu:item`,`${restaurantId}:${itemId}`,JSON.stringify(item));
+        const cachedResponse = {
+            restaurant:item.restaurant,
+            category:item.category
+        }
+        redisClient.set(`menu:item:${itemId}`,JSON.stringify(cachedResponse));
         return true;
     } catch (error) {
         throw error;
@@ -52,7 +64,7 @@ export const checkMenuItemService = async function (itemId:string,restaurantId:m
 
 export const checkRestaurantSlugService = async function (slug:string):Promise<RestaurantSlugResponse|null> {
     try {
-        const cachedRestaurantSlug = await redisClient.hGet(`slug`,slug);
+        const cachedRestaurantSlug = await redisClient.get(`restaurant:slug:${slug}`);
         if(cachedRestaurantSlug){
             return {
                 _id:cachedRestaurantSlug
@@ -66,7 +78,8 @@ export const checkRestaurantSlugService = async function (slug:string):Promise<R
         if(!restaurant){
             return null;
         }
-        redisClient.hSet(`restaurant:slug`,slug,restaurant._id.toString());
+        //redisClient.hSet(`restaurant:slug`,slug,restaurant._id.toString());
+        redisClient.set(`restaurant:slug:${slug}`,restaurant._id.toString());
         
         return {
             _id:restaurant._id.toString()
@@ -84,8 +97,8 @@ export const createMenuCategoryService = async function (data:IMenuCategory):Pro
             restaurant: data.restaurant,
             name: data.name,
             description: data.description,
-        });      
-        redisClient.hSet(`menu:category`,`${category.restaurant}:${category._id}`,JSON.stringify(category));
+        });    
+        redisClient.del(`menu:public:${category.restaurant}`);
         return category;
     } catch (error) {
         throw error;
@@ -96,7 +109,7 @@ export const createMenuCategoryService = async function (data:IMenuCategory):Pro
 export const getMenuService = async function(restaurant:Schema.Types.ObjectId):Promise<IMenuItem[]> {  
 
     try {
-        const cachedMenu = await redisClient.hGet(`menu:public`,`${restaurant}`);
+        const cachedMenu = await redisClient.get(`menu:public:${restaurant}`)
         if(cachedMenu){
             return JSON.parse(cachedMenu);
         }
@@ -104,7 +117,7 @@ export const getMenuService = async function(restaurant:Schema.Types.ObjectId):P
             restaurant: restaurant,
         },"-__v -restaurant -createdAt -updatedAt").populate({path:'category',select:'name -_id'});
 
-        redisClient.hSet(`menu:public`,`${restaurant}`,JSON.stringify(menu));
+        redisClient.set(`menu:public:${restaurant}`,JSON.stringify(menu));
         return menu;
     } catch (error) {
         throw error;
@@ -116,7 +129,7 @@ export const getMenuService = async function(restaurant:Schema.Types.ObjectId):P
 export const getMenuCategoriesService = async function(restaurant:Schema.Types.ObjectId):Promise<any> {
 
     try {
-        const cachedMenuCategories = await redisClient.hGet(`menu:categories`,`${restaurant}`);
+        const cachedMenuCategories = await redisClient.get(`menu:categories:${restaurant}`);
         if(cachedMenuCategories){
      
             return JSON.parse(cachedMenuCategories);
@@ -125,7 +138,7 @@ export const getMenuCategoriesService = async function(restaurant:Schema.Types.O
             restaurant: restaurant,
         },"-__v -restaurant -createdAt -updatedAt");
 
-        redisClient.hSet(`menu:categories`,`${restaurant}`,JSON.stringify(menuCategories));
+        redisClient.set(`menu:categories:${restaurant}`,JSON.stringify(menuCategories));
         return menuCategories;
     } catch (error) {
         throw error;
@@ -147,10 +160,9 @@ export const updateMenuCategoryService = async function (categoryId:string,data:
         if(!category){
             throw new Error("Menu Category not found");
         }
-        //update from redis
-        redisClient.hSet(`menu:category`,`${category.restaurant}:${category._id}`,JSON.stringify(category)); 
-        redisClient.hDel(`menu:public`,`${category.restaurant}`);
-        redisClient.hDel(`menu:categories`,`${category.restaurant}`);
+        //delete the cache
+        redisClient.del(`menu:categories:${category.restaurant}`);
+        redisClient.del(`menu:public:${category.restaurant}`);
         return category
     } catch (error) {
         throw error;
@@ -177,10 +189,9 @@ export const deleteMenuCategoryService = async function (categoryId:string,resta
         if(!category){
             return false;
         }
-        redisClient.hDel('menu:category',`${restaurantId}:${categoryId}`);
-        redisClient.hDel(`menu:public`,`${category.restaurant}`);
-        redisClient.hDel(`menu:public`,`${category.restaurant}`);
-     
+        redisClient.del(`menu:categories:${category.restaurant}`);
+        redisClient.del(`menu:category:${categoryId}`);
+        redisClient.del(`menu:public:${category.restaurant}`);     
         return true;
     }catch(error){
         throw error;
@@ -193,8 +204,7 @@ export const createMenuItemService = async function (data:IMenuItem):Promise<IMe
 
     try {
         const item = await MenuItem.create(data);
-        redisClient.hSet(`menu:item`,`${data.restaurant}:${data.category}`,JSON.stringify(item));
-        redisClient.hDel(`menu:public`,`${data.restaurant}`);
+        redisClient.del(`menu:public:${item.restaurant}`);
         return item;
     } catch (error) {
         throw error;
@@ -211,8 +221,7 @@ export const updateMenuItemService = async function (itemId:string,data:IMenuIte
             if(!item){
                 throw new Error("Menu Item not found");
             }
-            redisClient.hSet(`menu:item`,`${item.restaurant}:${item.category}`,JSON.stringify(item));
-            redisClient.hDel(`menu:public`,`${item.restaurant}`);
+            redisClient.del(`menu:public:${item.restaurant}`);
             return item 
         } catch (error) {
             throw error;

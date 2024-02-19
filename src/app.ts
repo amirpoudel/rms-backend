@@ -26,7 +26,7 @@ import { errorHandler } from './utils/errorHandler';
 
 app.use("/api/v1/private",authenticateUser)
 
-app.use("/api/v1/private/user",userRoutes);
+app.use("/api/v1/user",userRoutes);
 app.use("/api/v1/private/menu",menuRoutes);
 
 //public routes
