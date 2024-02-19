@@ -20,12 +20,19 @@ export const createFeedbackService = async function(data:IFeedback):Promise<IFee
 export const getFeedbacksService = async function(restaurantId:Schema.Types.ObjectId):Promise<IFeedback[]> {
 
     try {
-        const feedbacksCache = await redisClient.hGet("feedbacks",restaurantId.toString());
-        if(feedbacksCache){
+        const feedbacksCache = await redisClient.get(`restaurant:feedbacks${restaurantId}`);
+        if (feedbacksCache) {
             return JSON.parse(feedbacksCache);
         }
-        const feedbacks = await Feedback.find({restaurant:restaurantId});
-        redisClient.hSet("feedbacks",restaurantId.toString(),JSON.stringify(feedbacks));
+        const feedbacks = await Feedback.find({ restaurant: restaurantId });
+        if (!feedbacks) {
+            return [];
+        }
+        redisClient.set(
+            `restaurant:feedbacks:${restaurantId}`,
+            JSON.stringify(feedbacks),
+            { EX: 8 * 60 * 60 } // Fix: Pass options object as the first argument
+        );
         return feedbacks;
     } catch (error) {
         throw error;

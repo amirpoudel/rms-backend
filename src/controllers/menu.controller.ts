@@ -32,11 +32,11 @@ export const checkMenuItem = asyncHandler(async (req: UserRequest, res: Response
     const itemId = req.params.itemId;
     const restaurantId = req.user.restaurant;
     if(!itemId){
-        return res.status(400).json(new ApiError(400, 'Item Id is required'));
+        throw new ApiError(400, 'Item Id is required');
     }
     const item = await checkMenuItemService(itemId,restaurantId);
     if(item===false){
-        return res.status(404).json(new ApiError(404, 'Item not found'));
+        throw new ApiError(404, 'Item not found');
     }
     next();
 })
@@ -258,13 +258,13 @@ export const deleteMenuItem = asyncHandler(async (req:UserRequest,res:Response)=
 
 
 
-//todo if not menu found case
+
 export const getMenuItemsPublic = asyncHandler(async (req: Request, res: Response) => {
     
     const restaurant = req.body?.restaurant;
     
     if(!restaurant){
-        return res.status(400).json(new ApiError(400, 'Restaurant Id is required'));
+       throw new ApiError(400, 'Restaurant Id is required');
     }
 
     const response = await getMenuService(restaurant);

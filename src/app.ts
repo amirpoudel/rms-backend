@@ -19,6 +19,7 @@ app.use(cookieParser())
 import userRoutes from './routes/privateRoutes/user.route'
 import menuRoutes from './routes/privateRoutes/menu.route'
 import publicRouts from './routes/publicRoutes/public.route'
+import feedbackRoutes from './routes/privateRoutes/feedback.route'
 import { authenticateUser } from './middlewares/auth.middleware';
 import { errorHandler } from './utils/errorHandler';
 
@@ -28,6 +29,7 @@ app.use("/api/v1/private",authenticateUser)
 
 app.use("/api/v1/user",userRoutes);
 app.use("/api/v1/private/menu",menuRoutes);
+app.use("/api/v1/private/feedback",feedbackRoutes);
 
 //public routes
 app.use("/api/v1/restaurant",publicRouts);

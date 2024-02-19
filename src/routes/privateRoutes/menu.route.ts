@@ -16,6 +16,7 @@ router.route("/category/:categoryId").patch(menuController.updateMenuCategory)
 
 
 router.route("/:categoryId/item").post(upload.single('image'),menuController.createMenuItem)
+
 router.route("/item/:itemId").patch(menuController.updateMenuItem)
                              .delete(menuController.deleteMenuItem)
 router.route("/item/:itemId/image").patch(upload.single('image'),menuController.updateMenuItemImage)

@@ -116,7 +116,9 @@ export const getMenuService = async function(restaurant:Schema.Types.ObjectId):P
         const menu= await MenuItem.find({
             restaurant: restaurant,
         },"-__v -restaurant -createdAt -updatedAt").populate({path:'category',select:'name -_id'});
-
+        if(menu.length === 0){
+            throw new Error("No Menu Items found");
+        }
         redisClient.set(`menu:public:${restaurant}`,JSON.stringify(menu));
         return menu;
     } catch (error) {
