@@ -6,10 +6,23 @@ import bodyParser from 'body-parser';
 const app = express();
 
 
+// Define your array of allowed origins
+const allowedOrigins = JSON.parse(process.env.CORS_ORIGIN || "[]");
+
+// Setup CORS with allowed origins
 app.use(cors({
-    origin:JSON.parse(process.env.CORS_ORIGIN || ""),
-    credentials:true,
-  }));
+  origin: function (origin, callback) {
+    // Check if the origin is in the allowed origins array
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
+}));
+
+
 app.use(bodyParser.json())
 app.use(express.json({limit: "16kb"}))
 app.use(express.urlencoded({extended: true, limit: "16kb"}))

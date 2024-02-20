@@ -48,15 +48,15 @@ export const loginUser = asyncHandler( async (req:Request, res:Response) => {
 
     let response = await loginUserService({email,phone,password});
 
-    return res.status(200).cookie("accessToken",response.accessToken,COOKIE_OPTIONS)
-                        .cookie("refreshToken",response.refreshToken,COOKIE_OPTIONS)
+    return res.status(200).cookie("accessToken",{ path: "/", httpOnly: true, secure: true, sameSite: "none" })
+                        .cookie("refreshToken",{ path: "/", httpOnly: true, secure: true, sameSite: "none" })
                         .json(new ApiResponse(200,response,"Login successful"))
 
 })
 
 export const logoutUser = asyncHandler( async (req:UserRequest, res:Response) => {
-    res.clearCookie("accessToken",COOKIE_OPTIONS);
-    res.clearCookie("refreshToken",COOKIE_OPTIONS);
+    res.clearCookie("accessToken", { path: "/", httpOnly: true, secure: true, sameSite: "none" });
+    res.clearCookie("refreshToken", { path: "/", httpOnly: true, secure: true, sameSite: "none" });
     await logoutUserService(req.user._id);
     return res.status(200).json(new ApiResponse(200,null,"Logout successful"));
 })

@@ -5,17 +5,12 @@ const USER_ROLE = {
 
 }
 
-
-const RESTAURANT_TYPE = {
-
-}
-
-
 const COOKIE_OPTIONS = {
+    path: '/',
     httpOnly: true,
-    secure: true,
-    maxAge: 1000 * 60 * 60 * 24 * 7 // 7 days
-}
+    secure: true, // Change this to false for local development
+    sameSite: 'none' as string, // Change to 'None' in production with HTTPS
+};
 
 export {
     USER_ROLE,
