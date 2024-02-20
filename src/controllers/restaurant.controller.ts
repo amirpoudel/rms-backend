@@ -51,3 +51,9 @@ export const createRestaurant = asyncHandler(async (req: Request, res: Response)
         );
 
 });
+
+export const getAllRestaurants = asyncHandler(async (req: Request, res: Response) => {
+
+    
+
+});

@@ -2,11 +2,12 @@ import express from 'express';
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import bodyParser from 'body-parser';
+
 const app = express();
 
 
 app.use(cors({
-    origin:process.env.CORS_ORIGIN,
+    origin:JSON.parse(process.env.CORS_ORIGIN || ""),
     credentials:true,
   }));
 app.use(bodyParser.json())
@@ -26,7 +27,6 @@ import { errorHandler } from './utils/errorHandler';
 //authenticate for private routes 
 
 app.use("/api/v1/private",authenticateUser)
-
 app.use("/api/v1/user",userRoutes);
 app.use("/api/v1/private/menu",menuRoutes);
 app.use("/api/v1/private/feedback",feedbackRoutes);

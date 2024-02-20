@@ -35,5 +35,9 @@ RUN npm run build
 # Expose port
 EXPOSE 8000
 
+#connect for monitoring using pm2
+ENV PM2_PUBLIC_KEY 9xapvmp1uh9dhsz
+ENV PM2_SECRET_KEY 9pg4fxnle839oi3
+
 # Run the app using PM2
 CMD ["pm2-runtime", "dist/server.js"]

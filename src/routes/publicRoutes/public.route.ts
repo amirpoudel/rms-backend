@@ -11,4 +11,7 @@ router.route("/:restaurantSlug/menu").get(getMenuItemsPublic)
 
 router.route("/:restaurantSlug/feedback").post(createFeedback)
 
+
+router.route("/").get();
+
 export default router;
