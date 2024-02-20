@@ -2,12 +2,36 @@ version: '3.8'
 
 services:
   redis:
-    image: redis
+    image: redis:latest
     ports:
-      - "6379:6379"
-    networks:   # Add networks section to specify the custom network
+      - '6379:6379'
+    networks:
       - rms-network
 
-networks:     # Define the custom network
+  node_app:
+    image: amirpoudel/rms-backend:latest  # Assuming this is the image for your Node.js server
+    ports:
+      - "8000:8000"
+    environment:
+      - NODE_ENV=
+      - CORS_ORIGIN=
+      - MONGODB_URL=
+      - CLOUDINARY_CLOUD_NAME=
+      - CLOUDINARY_API_KEY=
+      - CLOUDINARY_API_SECRET=
+      - ACCESS_TOKEN_SECRECT=
+      - ACCESS_TOKEN_EXPIRY=
+      - REFRESH_TOKEN_SECRECT=
+      - REFRESH_TOKEN_EXPIRY=
+      - AWS_REGION=
+      - AWS_PUBLIC_BUCKET_NAME=
+      - AWS_ACCESS_KEY_ID=
+      - AWS_ACCESS_KEY_SECRECT=
+      - REDIS_HOST=
+      - REDIS_PORT=
+    networks:
+      - rms-network
+
+networks:
   rms-network:
     driver: bridge

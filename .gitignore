@@ -1,3 +1,5 @@
+#dev docker compose 
+dev.docker-compose.yml
 # Logs
 logs
 *.log

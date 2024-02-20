@@ -1,18 +1,19 @@
-import { createClient, RedisClientOptions } from "redis";
-
-interface CustomRedisClientOptions extends RedisClientOptions {
-    host: string;
-}
-console.log("redis host", process.env.REDIS_HOST);
-console.log("redis port", process.env.REDIS_PORT);
-
-export const redisClient = createClient({
-    host:'ubuntu-redis-1',
-    port:6379,
-    
-} as CustomRedisClientOptions).on("error", (error) => {
-    console.log("error in redis client", error);
-});
+import { createClient } from 'redis';
 
 
 
+const redisUrl = `redis://${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`;
+console.log('redisUrl:', redisUrl);
+const redisOptions = {
+    url: redisUrl,
+    password: process.env.REDIS_PASSWORD
+};
+
+// Create Redis client
+export const redisClient = createClient(redisOptions)
+    .on('error', (err) => {
+        console.error('Redis Error:', err);
+    })
+    .on('ready', () => {
+        console.log('Connected to Redis');
+    });
