@@ -70,7 +70,6 @@ export const registerUserWithRestaurantService = async function (restaurant: Res
         return true
 
     } catch (error) {
-        console.error("Something went wrong with the transaction", error);
         session.endSession();
         throw error;
     }

@@ -6,24 +6,13 @@ import bodyParser from 'body-parser';
 const app = express();
 
 
-// Define your array of allowed origins
-const allowedOrigins = JSON.parse(process.env.CORS_ORIGIN || "[]");
-
-// Setup CORS with allowed origins
+console.log("CORS ALLOWED",process.env.CORS_ORIGIN)
 app.use(cors({
-  origin: function (origin, callback) {
-    // Check if the origin is in the allowed origins array
-    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin:process.env.CORS_ORIGIN,
   credentials: true
 }));
 
-
-app.use(bodyParser.json())
+app.use(bodyParser.json());
 app.use(express.json({limit: "16kb"}))
 app.use(express.urlencoded({extended: true, limit: "16kb"}))
 app.use(express.static("public"))
@@ -48,6 +37,22 @@ app.use("/api/v1/private/feedback",feedbackRoutes);
 app.use("/api/v1/restaurant",publicRouts);
 
 app.use(errorHandler);
+
+
+
+// // Add CORS headers for all responses
+// app.use((req, res, next) => {
+//   // Set CORS headers
+//   res.setHeader('Access-Control-Allow-Origin', '*');
+//   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+//   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+//   res.setHeader('Access-Control-Allow-Credentials', 'true');
+//   // Handle preflight requests
+//   if (req.method === 'OPTIONS') {
+//     res.sendStatus(200);
+//   } else {
+//     next();
+//   }})
 
 
 export default app;

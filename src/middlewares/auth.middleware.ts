@@ -5,7 +5,7 @@ import jwt, { Secret } from "jsonwebtoken";
 import { JwtPayload, UserRequest } from "../types/express.type";
 export const authenticateUser = asyncHandler( async (req:UserRequest, res:Response, next:NextFunction) => {
     try {
-        const token = req.cookies?.accessToken || req.header('Authorization')?.replace("Bearer",""); // header for mobile
+        const token = req.cookies?.accessToken || req.header('Authorization')?.replace("Bearer","").trim(); // header for mobile
         if (!token) {
             throw new ApiError(401, 'Unauthorized request');
         }
@@ -15,8 +15,10 @@ export const authenticateUser = asyncHandler( async (req:UserRequest, res:Respon
         if (!accessTokenSecrect) {
             throw new ApiError(500, "Access token secrect not found");
         }
+        console.log("TOKEN",token)
 
         const decode = await jwt.verify(token, accessTokenSecrect as Secret) as JwtPayload;
+        console.log("DECODE",decode)
 
         // can find user form db and attach to req.user
         req.user = {
@@ -26,7 +28,7 @@ export const authenticateUser = asyncHandler( async (req:UserRequest, res:Respon
             name: decode.name,
             role: decode.role,
         };
-        console.log("this is decode ", decode);
+
         next();
     } catch (error) {
         throw new ApiError(401, (error as Error).message || "Invalid access Token");
