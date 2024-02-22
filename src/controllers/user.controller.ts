@@ -1,16 +1,17 @@
-import asyncHandler from '../utils/asyncHandler';
-import ApiError from '../utils/ApiError';
-import ApiResponse from '../utils/ApiResponse';
+import asyncHandler from '../utils/handler/asyncHandler';
+import ApiError from '../utils/handler/ApiError';
+import ApiResponse from '../utils/handler/ApiResponse';
 import { COOKIE_OPTIONS, USER_ROLE } from '../constant';
 import { Request, Response } from 'express';
 import _ from 'lodash';
 import {
+    forgetPasswordService,
     loginUserService,
     logoutUserService,
     registerUserWithRestaurantService,
 } from '../services/user.service';
 import { UserRequest } from '../types/express.type';
-import { isEmailValid, isPasswordValid } from '../utils/helper';
+import { isEmailValid, isPasswordValid, isPhoneValid } from '../utils/helper';
 
 export const registerUserWithRestaurant = asyncHandler(
     async (req: Request, res: Response) => {
@@ -119,3 +120,22 @@ export const logoutUser = asyncHandler(
             .json(new ApiResponse(200, null, 'Logout successful'));
     }
 );
+
+export const forgetPassowrd  = asyncHandler(async (req: Request, res: Response) => {
+
+    const {email , phone } = req.body;
+    if(!email && !phone){
+        throw new ApiError(400, 'Email or phone is required');
+    }
+    if(email && !isEmailValid(email)){
+        throw new ApiError(400, 'Invalid email');
+    }
+    if(phone && !isPhoneValid(phone)){
+        throw new ApiError(400, 'Invalid phone number');
+    }
+
+    const resetToken = await forgetPasswordService({email,phone});
+    // send reset password token to email or phone
+
+    return res.status(200).json(new ApiResponse(200, null, 'Reset password token sent successfully'));
+});

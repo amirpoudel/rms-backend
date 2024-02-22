@@ -4,7 +4,7 @@ dotenv.config({path:'./.env'});
 import app from './app';
 import  './config/mongodb.config';
 import { redisClient } from './config/redis.config';
-import { logger } from './utils/winston';
+import { logger } from './utils/logs/winston';
 redisClient.connect().then(()=>{
   console.log("redis connected");
 });

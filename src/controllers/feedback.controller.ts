@@ -1,9 +1,9 @@
 
 import { createFeedbackService, getFeedbacksService } from "../services/feeback.service";
 import { UserRequest } from "../types/express.type";
-import ApiError from "../utils/ApiError";
-import ApiResponse from "../utils/ApiResponse";
-import asyncHandler from "../utils/asyncHandler";
+import ApiError from "../utils/handler/ApiError";
+import ApiResponse from "../utils/handler/ApiResponse";
+import asyncHandler from "../utils/handler/asyncHandler";
 import { Request, Response } from "express";
 
 export const createFeedback = asyncHandler(async (req:Request, res: Response) => {

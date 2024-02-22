@@ -1,11 +1,11 @@
 import { Restaurant } from "../models/restaurant.model";
 import { NextFunction, Request, Response } from "express";
-import asyncHandler from "../utils/asyncHandler";
+import asyncHandler from "../utils/handler/asyncHandler";
 import { User } from "../models/user.model";
 import { USER_ROLE } from "../constant";
-import ApiResponse from "../utils/ApiResponse";
+import ApiResponse from "../utils/handler/ApiResponse";
 import mongoose from "mongoose";
-import ApiError from "../utils/ApiError";
+import ApiError from "../utils/handler/ApiError";
 import { convertSlug } from "../utils/helper";
 
 export const checkRestaurantSlug = asyncHandler(async (req: Request, res: Response,next:NextFunction) => {

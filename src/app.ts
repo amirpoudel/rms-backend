@@ -24,7 +24,7 @@ import menuRoutes from './routes/privateRoutes/menu.route'
 import publicRouts from './routes/publicRoutes/public.route'
 import feedbackRoutes from './routes/privateRoutes/feedback.route'
 import { authenticateUser } from './middlewares/auth.middleware';
-import { errorHandler } from './utils/errorHandler';
+import { errorHandler } from './utils/handler/errorHandler';
 
 //authenticate for private routes 
 
@@ -40,19 +40,6 @@ app.use(errorHandler);
 
 
 
-// // Add CORS headers for all responses
-// app.use((req, res, next) => {
-//   // Set CORS headers
-//   res.setHeader('Access-Control-Allow-Origin', '*');
-//   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-//   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-//   res.setHeader('Access-Control-Allow-Credentials', 'true');
-//   // Handle preflight requests
-//   if (req.method === 'OPTIONS') {
-//     res.sendStatus(200);
-//   } else {
-//     next();
-//   }})
 
 
 export default app;

@@ -2,7 +2,7 @@
 import mongoose, { mongo } from "mongoose";
 import { Restaurant } from "../models/restaurant.model";
 import { User } from "../models/user.model";
-import ApiError from "../utils/ApiError";
+import ApiError from "../utils/handler/ApiError";
 
 
 
@@ -126,4 +126,19 @@ export const logoutUserService = async function (userId:mongoose.Schema.Types.Ob
     }
 }
 
+export const forgetPasswordService = async function (data:{email?:string,phone?:string}):Promise<string>{
+    const {email,phone} = data;
 
+    try {
+        const user = await User.findOne({$or: [{email}, {phone}]});
+        if(!user) {
+            throw new ApiError(404, "User not found");
+        }
+        // generate token
+        const resetToken = user.generatePasswordResetToken();
+        await user.save();
+        return resetToken;
+    } catch (error) {
+        throw error;
+    }
+}

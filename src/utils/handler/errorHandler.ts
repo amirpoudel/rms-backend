@@ -1,7 +1,7 @@
 import {Request,Response,NextFunction,Errback} from 'express';
 import ApiError from './ApiError';
 import ApiResponse from './ApiResponse';
-import { logger } from './winston';
+import { logger } from '../logs/winston';
 
 export const errorHandler = (err:Errback,req:Request,res:Response,next:NextFunction) => {
 

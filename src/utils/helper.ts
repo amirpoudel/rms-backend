@@ -19,3 +19,12 @@ export function isEmailValid(email: string): boolean {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return regex.test(email);
 }
+
+export function isPhoneValid(phone: string): boolean {
+    const nepaliMobileNumberRegex = /^(?:\+?977)?(?:98|97|96|95|94|92)\d{7}$/;
+    return nepaliMobileNumberRegex.test(phone);
+}
+
+
+
+

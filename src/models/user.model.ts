@@ -1,11 +1,17 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
 import jwt, { Secret } from 'jsonwebtoken';
+import crypto from 'crypto';
 
 const accessTokenSecrect:string|undefined = process.env.ACCESS_TOKEN_SECRECT;
 const refreshTokenSecrect:string|undefined = process.env.REFRESH_TOKEN_SECRECT;
 const accessTokenExpiry:string|undefined = process.env.ACCESS_TOKEN_EXPIRY;
 const refreshTokenExpiry:string|undefined = process.env.REFRESH_TOKEN_EXPIRY;
+
+interface IUserPasswordReset{
+    token:string | null,
+    expiry:Date | null,
+}
 
 interface IUser {
     restaurant:mongoose.Schema.Types.ObjectId,
@@ -15,11 +21,15 @@ interface IUser {
     profileImage:string,
     role:string,
     password:string,
+    passwordChangeAt:Date,
+    passwordReset: IUserPasswordReset,
     refreshToken:string,
-    comparePassword:(password:string)=>boolean,
+    comparePassword:(password:string)=>boolean
     generateAccessToken:()=>string,
-    generateRefreshToken:()=>string
+    generateRefreshToken:()=>string,
+    generatePasswordResetToken:()=>string,
 }
+
 
 const userSchema = new mongoose.Schema<IUser>({
     restaurant:{
@@ -61,6 +71,10 @@ const userSchema = new mongoose.Schema<IUser>({
     },
     refreshToken:{
         type:String,
+    },
+    passwordReset : {
+        token:String,
+        expiry:Date
     }
 
 })
@@ -94,6 +108,14 @@ userSchema.methods.generateRefreshToken = function () {
     });
 };
 
-const User = mongoose.model<IUser>("User",userSchema);
+userSchema.methods.generatePasswordResetToken = function ():string{
 
-export {User}
+    const resetToken = crypto.randomBytes(3).toString('hex');
+    this.passwordReset.token = crypto.createHash('sha256').update(resetToken).digest('hex');
+    this.passwordReset.expiry = new Date(Date.now() + 10 * 60 * 1000);
+    return resetToken;
+}
+
+export const User = mongoose.model<IUser>("User",userSchema);
+
+
