@@ -61,13 +61,13 @@ export const checkRestaurantSlug = asyncHandler(async (req: Request, res: Respon
 
 export const createMenuCategory = asyncHandler(
     async (req: UserRequest, res: Response) => {
-        const { categoryName, categoryDescription } = req.body;
+        const { name, description } = req.body;
         const restaurantId = req.user.restaurant;
 
         const category = await createMenuCategoryService({
             restaurant: restaurantId,
-            name: categoryName as string,
-            description: categoryDescription as string,
+            name: name as string,
+            description: description as string,
            
         })
         let response = _.omit(category, ['__v', 'restaurant']);
@@ -106,20 +106,20 @@ export const getMenuCategories = asyncHandler(
 
 export const updateMenuCategory = asyncHandler(async (req: UserRequest, res: Response) => {
         const { categoryId } = req.params;
-        const { categoryName, categoryDescription } = req.body;
+        const { name, description } = req.body;
         const restaurantId = req.user.restaurant;
         if(!categoryId){
             throw new ApiError(400, 'Category Id is required');
         }
 
-        if (!categoryName && !categoryDescription) {
+        if (!name && !description) {
             throw new ApiError(400, 'Category Name Or Description are required');
         }
 
         const updateCategory = await updateMenuCategoryService(categoryId,{
             restaurant: restaurantId,
-            name: categoryName,
-            description: categoryDescription,
+            name: name,
+            description: description,
 
         })
 
@@ -154,16 +154,16 @@ export const createMenuItem = asyncHandler(async (req: UserRequest, res: Respons
     const restaurantId = req.user.restaurant;
     const categoryId = req.params.categoryId;
     const {
-        itemName,
-        itemDescription,
-        itemPrice,
-        isVeg,
-        containsEggs,
+        name,
+        description,
+        price,
+        isAvailable
+       
     } = req.body;
 
     const localImage = req?.file;
 
-    if(!categoryId || !itemName || !itemPrice) {
+    if(!categoryId || !name || !price) {
         return res
             .status(400)
             .json(
@@ -178,13 +178,12 @@ export const createMenuItem = asyncHandler(async (req: UserRequest, res: Respons
     const itemResponse = await createMenuItemService({
         restaurant: restaurantId,
         category: categoryId as unknown as Schema.Types.ObjectId,
-        name: itemName,
-        description: itemDescription,
-        price: itemPrice,
+        name: name,
+        description: description,
+        price: price,
         imageLink:uploadedImageURL,
         flags: {
-            isVeg: isVeg || false,
-            containsEggs: containsEggs || false,
+            isAvailable: isAvailable || true,
         },
     });
 
@@ -199,23 +198,22 @@ export const createMenuItem = asyncHandler(async (req: UserRequest, res: Respons
 export const updateMenuItem = asyncHandler(async (req:UserRequest,res:Response) => {
     const {itemId } = req.params;
     const {
-        itemName,
-        itemDescription,
-        itemPrice,
-        isVeg,
-        containsEggs,
+        name,
+        description,
+        price,
+        isAvailable,
+        
     } = req.body;
 
     if(!itemId){
         throw new ApiError(400, 'Item Id is required');
     }
     const updatedItem = await updateMenuItemService(itemId,{
-        name: itemName,
-        description: itemDescription,
-        price: itemPrice,
+        name: name,
+        description: description,
+        price: price,
         flags: {
-            isVeg: isVeg || false,
-            containsEggs: containsEggs || false,
+            isAvailable: isAvailable || true
         },
         
     })
@@ -254,6 +252,24 @@ export const deleteMenuItem = asyncHandler(async (req:UserRequest,res:Response)=
         deleteImageFromS3(item.imageLink);
     }
     return res.status(200).json(new ApiResponse(200,true,'Menu Item deleted successfully'))
+})
+
+export const getMenuItems = asyncHandler(async (req: UserRequest, res: Response) => {
+    const restaurant = req.user.restaurant;
+
+    const response = await getMenuService(restaurant);
+    if(response.length===0){
+        throw new ApiError(404,'No Menu Items found');
+    }
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                response,
+                'Menu Items fetched successfully'
+            )
+        );
 })
 
 
