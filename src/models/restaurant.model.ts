@@ -1,28 +1,29 @@
 import mongoose from "mongoose";
 
 
-interface IRestaurant {
-    name:string,
-    username:string,
-    restaurantType:string,
-    description:string,
-    profileImage:string,
-    coverImage:string,
-    contact:{
-        phone:string[],
-        email:string[],
+export interface IRestaurant {
+    _id?:string|mongoose.Schema.Types.ObjectId,
+    name?:string,
+    username?:string,
+    restaurantType?:string,
+    description?:string,
+    profileImage?:string|undefined,
+    coverImage?:string,
+    contact?:{
+        phone?:string[],
+        email?:string[],
     },
-    address:{
-        country: string,
-        province: string,
-        district: string,
-        municipality: string,
-        ward: number,
-        street: string,
-        pincode: string,
-        location: {
-            type: string,
-            coordinates: [number, number],
+    address?:{
+        country?: string,
+        province?: string,
+        district?: string,
+        municipality?: string,
+        ward?: number,
+        street?: string,
+        pincode?: string,
+        location?: {
+            type?: string,
+            coordinates?: [number, number],
         },
     },
 

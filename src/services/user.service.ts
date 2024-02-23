@@ -1,8 +1,9 @@
 
-import mongoose, { mongo } from "mongoose";
-import { Restaurant } from "../models/restaurant.model";
-import { User } from "../models/user.model";
+import mongoose, { Schema, mongo } from "mongoose";
+import { IRestaurant, Restaurant } from "../models/restaurant.model";
+import { IUser, User } from "../models/user.model";
 import ApiError from "../utils/handler/ApiError";
+
 
 
 
@@ -25,8 +26,8 @@ interface UserLogin{
 }
 
 interface UserLoginResponse{
-    _id:mongoose.Types.ObjectId,
-    restaurant: mongoose.Schema.Types.ObjectId,
+    _id:string,
+    restaurant:string,
     name:string,
     email:string,
     phone:string,
@@ -36,44 +37,53 @@ interface UserLoginResponse{
 
 }
 
-export const registerUserWithRestaurantService = async function (restaurant: RestaurantRegister, user: UserRegister):Promise<boolean> {
-    const session = await Restaurant.startSession();
+export const registerUserWithRestaurantService = async function (
+    restaurant: RestaurantRegister,
+    user: UserRegister
+): Promise<{
+    restaurant: IRestaurant | null,
+    owner: IUser | null
+}> {
+   
 
     try {
-        await session.withTransaction(async () => {
-            const restaurantResponse = await Restaurant.create(
-                [{
-                    name: restaurant.name,
-                    username: restaurant.username,
-                }],
-                { session }
-            );
-            
-            const owner = await User.create(
-                [{
-                    restaurant: restaurantResponse[0]?._id,
-                    name: user.name,
-                    email: user.email,
-                    phone: user.phone,
-                    role: user.role,
-                    password: user.password
-                }],
-                { session }
-            );
-        
-        });
+       const  restaurantResponse = await Restaurant.create(
+            {
+                name: restaurant.name,
+                username: restaurant.username,
+            }
+           
+        );
+        console.log("I am in registerUserWithRestaurantService",restaurantResponse)
+        if(!restaurantResponse){
+            return {restaurant:null,owner:null}
+        }
 
-        
-        await session.commitTransaction();
-       
-        await session.endSession();
-        return true
-
+        const owner = await User.create(
+            {
+                restaurant: restaurantResponse?._id,
+                name: user.name,
+                email: user.email,
+                phone: user.phone,
+                role: user.role,
+                password: user.password
+            }
+        );
+        console.log("I am in registerUserWithRestaurantService",owner)
+        if(!owner){
+            //delete restaurant if user is not created 
+            await Restaurant.findByIdAndDelete(restaurantResponse._id);
+            return {restaurant:null,owner:null}
+        }
+        console.log("I am in registerUserWithRestaurantService",owner)
+        return { restaurant: restaurantResponse, owner: owner };
     } catch (error) {
-        session.endSession();
-        throw error;
-    }
+        throw new ApiError(400,"",error);
+        
+    } 
 }
+
+
 
 
 export const loginUserService = async function (data:UserLogin):Promise<UserLoginResponse>{
@@ -97,8 +107,8 @@ export const loginUserService = async function (data:UserLogin):Promise<UserLogi
      await user.save();
      
     return {
-            _id:user._id,
-            restaurant: user.restaurant,
+            _id:user._id.toString(),
+            restaurant: user.restaurant.toString(),
             name:user.name,
             email:user.email,
             phone:user.phone,

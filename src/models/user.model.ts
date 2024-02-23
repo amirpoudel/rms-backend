@@ -13,8 +13,8 @@ interface IUserPasswordReset{
     expiry:Date | null,
 }
 
-interface IUser {
-    restaurant:mongoose.Schema.Types.ObjectId,
+export interface IUser {
+    restaurant:string | mongoose.Schema.Types.ObjectId,
     name:string,
     email:string,
     phone:string,

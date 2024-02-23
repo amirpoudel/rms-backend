@@ -25,6 +25,25 @@ export function isPhoneValid(phone: string): boolean {
     return nepaliMobileNumberRegex.test(phone);
 }
 
+export function getLimitAndOffset(query:any,maxLimit:number=20):{limit:number,offset:number} {
+    
+    let page, limit, offset;
+    if(!query.limit){
+        return {limit:maxLimit,offset:0};
+    }
+    limit = Number(query.limit);
+    if(!query.page){
+        return {limit:limit,offset:0};
+    }
+    page = Number(query.page);
+    page = Number(page || 1);
+    limit = Number(limit < maxLimit ? limit :maxLimit)
+    offset = Number((page - 1)) * Number(limit);
+    return {limit,offset};
+  }
+
+
+
 
 
 

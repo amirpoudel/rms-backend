@@ -12,6 +12,8 @@ import {
 } from '../services/user.service';
 import { UserRequest } from '../types/express.type';
 import { isEmailValid, isPasswordValid, isPhoneValid } from '../utils/helper';
+import { uploadImageToS3 } from '../utils/aws/s3.aws';
+import { updateRestaurantService } from '../services/restaurant.service';
 
 export const registerUserWithRestaurant = asyncHandler(
     async (req: Request, res: Response) => {
@@ -43,7 +45,11 @@ export const registerUserWithRestaurant = asyncHandler(
                 'Password must be at least 8 characters long and contain at least one letter and one number'
             );
         }
-        const registerUser = await registerUserWithRestaurantService(
+        const restaurantImage = req?.file
+
+        
+
+        const { restaurant, owner } = await registerUserWithRestaurantService(
             {
                 name: restaurantName,
                 username: restaurantUsername,
@@ -56,6 +62,28 @@ export const registerUserWithRestaurant = asyncHandler(
                 password: ownerPassword,
             }
         );
+        if (!restaurant || !owner) {
+            throw new ApiError(500, 'Error creating restaurant and owner');
+        }
+        console.log('I am updating Image here', restaurantImage);
+        console.log('I am updating Image here', restaurant);
+        if (restaurantImage) {
+            // upload image to s3
+            uploadImageToS3(restaurantImage).then(
+                async (url): Promise<void> => {
+                    console.log('This is Url ', url);
+                    if (url) {
+                        console.log(url);
+                        if (restaurant._id) {
+                            console.log('I am updating restaurant image');
+                            updateRestaurantService(restaurant._id.toString(), {
+                                profileImage: url,
+                            });
+                        }
+                    }
+                }
+            );
+        }
 
         return res
             .status(201)
@@ -121,21 +149,30 @@ export const logoutUser = asyncHandler(
     }
 );
 
-export const forgetPassowrd  = asyncHandler(async (req: Request, res: Response) => {
+export const forgetPassowrd = asyncHandler(
+    async (req: Request, res: Response) => {
+        const { email, phone } = req.body;
+        if (!email && !phone) {
+            throw new ApiError(400, 'Email or phone is required');
+        }
+        if (email && !isEmailValid(email)) {
+            throw new ApiError(400, 'Invalid email');
+        }
+        if (phone && !isPhoneValid(phone)) {
+            throw new ApiError(400, 'Invalid phone number');
+        }
 
-    const {email , phone } = req.body;
-    if(!email && !phone){
-        throw new ApiError(400, 'Email or phone is required');
-    }
-    if(email && !isEmailValid(email)){
-        throw new ApiError(400, 'Invalid email');
-    }
-    if(phone && !isPhoneValid(phone)){
-        throw new ApiError(400, 'Invalid phone number');
-    }
+        const resetToken = await forgetPasswordService({ email, phone });
+        // send reset password token to email or phone
 
-    const resetToken = await forgetPasswordService({email,phone});
-    // send reset password token to email or phone
-
-    return res.status(200).json(new ApiResponse(200, null, 'Reset password token sent successfully'));
-});
+        return res
+            .status(200)
+            .json(
+                new ApiResponse(
+                    200,
+                    null,
+                    'Reset password token sent successfully'
+                )
+            );
+    }
+);

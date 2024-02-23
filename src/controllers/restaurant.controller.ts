@@ -6,7 +6,8 @@ import { USER_ROLE } from "../constant";
 import ApiResponse from "../utils/handler/ApiResponse";
 import mongoose from "mongoose";
 import ApiError from "../utils/handler/ApiError";
-import { convertSlug } from "../utils/helper";
+import { convertSlug, getLimitAndOffset } from "../utils/helper";
+import { getAllRestaurantService } from "../services/restaurant.service";
 
 export const checkRestaurantSlug = asyncHandler(async (req: Request, res: Response,next:NextFunction) => {
     const restaurantSlug = req.params.restaurantSlug;
@@ -54,6 +55,17 @@ export const createRestaurant = asyncHandler(async (req: Request, res: Response)
 
 export const getAllRestaurants = asyncHandler(async (req: Request, res: Response) => {
 
-    
+    const searchQuery = req.query?.search;
+    console.log(req.query);
+    const {limit,offset} = getLimitAndOffset(req.query);
+    console.log("I am in getAllRestaurants",searchQuery,limit,offset);
+    const condition = {
+        name:searchQuery as string,
+    }
+    const restaurants = await getAllRestaurantService(condition,limit,offset);
+    if(restaurants.length === 0){
+        throw new ApiError(404, 'No restaurants found');
+    }
+    return res.status(200).json(new ApiResponse(200, restaurants, 'Restaurants found'));
 
 });
