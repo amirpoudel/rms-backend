@@ -8,8 +8,8 @@ const USER_ROLE = {
 const COOKIE_OPTIONS = {
     path: '/',
     httpOnly: true,
-    secure: true, // Change this to false for local development
-    sameSite:'none', // Change to 'None' in production with HTTPS
+    secure: false, // Change this to false for local development
+    sameSite:'lax', // Change to 'None' in production with HTTPS
 };
 
 export {

@@ -51,6 +51,9 @@ const menuCategorySchema = new mongoose.Schema<IMenuCategory>({
     timestamps:true
 })
 
+// Define a compound unique index
+menuCategorySchema.index({ restaurant: 1, name: 1 }, { unique: true });
+
 
 
 const menuItemSchema = new mongoose.Schema<IMenuItem>({

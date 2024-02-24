@@ -113,18 +113,20 @@ export const loginUser = asyncHandler(async (req: Request, res: Response) => {
 
     return res
         .status(200)
-        .cookie('accessToken', response.accessToken, {
+        .cookie('accessToken',response.accessToken, {
+            domain:'localhost', // Change this to your domain
             path: '/',
             httpOnly: true,
-            secure: true,
+            secure: true, // Change this to false for local development
             sameSite: 'none',
         })
-        .cookie('refreshToken', response.refreshToken, {
+        .cookie('refreshToken', response.refreshToken,{
+            domain:'localhost', // Change this to your domain
             path: '/',
             httpOnly: true,
-            secure: true,
+            secure: true, // Change this to false for local development
             sameSite: 'none',
-        })
+        } )
         .json(new ApiResponse(200, response, 'Login successful'));
 });
 
