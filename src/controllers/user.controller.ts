@@ -16,30 +16,31 @@ import { uploadImageToS3 } from '../utils/aws/s3.aws';
 import { updateRestaurantService } from '../services/restaurant.service';
 
 export const registerUserWithRestaurant = asyncHandler(
-    async (req: Request, res: Response) => {
+    async (req: Request, res: Response) => { 
         const {
             restaurantName,
-            restaurantUsername,
+            restaurantUserName,
             ownerName,
             ownerEmail,
             ownerPhone,
-            ownerPassword,
+            password,
         } = req.body;
+        console.log(req.body);
 
         if (
             !restaurantName ||
-            !restaurantUsername ||
+            !restaurantUserName ||
             !ownerName ||
             !ownerEmail ||
             !ownerPhone ||
-            !ownerPassword
+            !password
         ) {
             throw new ApiError(400, 'All fields are required');
         }
         if (!isEmailValid(ownerEmail)) {
             throw new ApiError(400, 'Invalid email');
         }
-        if (!isPasswordValid(ownerPassword)) {
+        if (!isPasswordValid(password)) {
             throw new ApiError(
                 400,
                 'Password must be at least 8 characters long and contain at least one letter and one number'
@@ -47,26 +48,22 @@ export const registerUserWithRestaurant = asyncHandler(
         }
         const restaurantImage = req?.file
 
-        
-
         const { restaurant, owner } = await registerUserWithRestaurantService(
             {
                 name: restaurantName,
-                username: restaurantUsername,
+                username: restaurantUserName,
             },
             {
                 name: ownerName,
                 email: ownerEmail,
                 phone: ownerPhone,
                 role: USER_ROLE.OWNER,
-                password: ownerPassword,
+                password: password,
             }
         );
         if (!restaurant || !owner) {
             throw new ApiError(500, 'Error creating restaurant and owner');
         }
-        console.log('I am updating Image here', restaurantImage);
-        console.log('I am updating Image here', restaurant);
         if (restaurantImage) {
             // upload image to s3
             uploadImageToS3(restaurantImage).then(
