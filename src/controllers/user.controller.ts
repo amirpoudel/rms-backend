@@ -114,14 +114,12 @@ export const loginUser = asyncHandler(async (req: Request, res: Response) => {
     return res
         .status(200)
         .cookie('accessToken',response.accessToken, {
-            domain:'localhost', // Change this to your domain
             path: '/',
             httpOnly: true,
             secure: true, 
             sameSite: 'none',
         })
         .cookie('refreshToken', response.refreshToken,{
-            domain:'localhost', // Change this to your domain
             path: '/',
             httpOnly: true,
             secure: true,

@@ -9,6 +9,7 @@ import {
 import { convertSlug, convertToPlainObject } from '../utils/helper';
 import { Restaurant } from '../models/restaurant.model';
 import ApiError from '../utils/handler/ApiError';
+import { String } from 'aws-sdk/clients/cloudsearch';
 
 interface RestaurantSlugResponse {
     _id: string;
@@ -172,10 +173,11 @@ export const getMenuService = async function (
 };
 
 export const getMenuItemsByCategoryService = async function (
-    category: string
+    restaurant:string,category:string
 ): Promise<IMenuItem[]> {
     const menu = await MenuItem.find(
-        {
+        {   
+            restaurant: restaurant,
             category: category,
 
         },

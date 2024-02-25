@@ -8,7 +8,7 @@ import { deleteImageFromS3, uploadImageToS3 } from '../utils/aws/s3.aws';
 import _ from 'lodash';
 import { checkMenuCategoryService, checkMenuItemService, checkRestaurantSlugService, createMenuCategoryService, createMenuItemService, deleteMenuCategoryService, getMenuCategoriesService, getMenuItemsByCategoryService, getMenuService, updateMenuCategoryService, updateMenuItemImageService, updateMenuItemService } from '../services/menu.service';
 import { Schema } from 'mongoose';
-import { redisClient } from '../config/redis.config';
+
 
 
 
@@ -271,7 +271,7 @@ export const getMenuItems = asyncHandler(async (req: UserRequest, res: Response)
 export const getMenuItemsByCategory = asyncHandler(async (req: UserRequest, res: Response) => {
     const restaurant = req.user.restaurant;
     const category = req.params.categoryId;
-    const response = await getMenuItemsByCategoryService(category as string);
+    const response = await getMenuItemsByCategoryService(restaurant.toString(),category as string);
     if(response.length===0){
         throw new ApiError(404,'No Menu Items found');
     }
