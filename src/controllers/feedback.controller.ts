@@ -20,7 +20,7 @@ export const createFeedback = asyncHandler(async (req:Request, res: Response) =>
         rating
     })
 
-    return res.status(201).json(new ApiResponse(201,feedbackResponse,"Feedback created successfully"));
+    return res.status(200).json(new ApiResponse(200,feedbackResponse,"Feedback created successfully"));
 })
 
 

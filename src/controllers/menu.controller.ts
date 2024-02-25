@@ -72,10 +72,10 @@ export const createMenuCategory = asyncHandler(
         })
         let response = _.omit(category, ['__v', 'restaurant']);
         return res
-            .status(201)
+            .status(200)
             .json(
                 new ApiResponse(
-                    201,
+                    200,
                     response,
                     'Menu Category created successfully'
                 )
@@ -181,14 +181,12 @@ export const createMenuItem = asyncHandler(async (req: UserRequest, res: Respons
         name: name,
         description: description,
         price: price,
-        imageLink:uploadedImageURL,
-        flags: {
-            isAvailable: isAvailable || true,
-        },
+        isAvailable: isAvailable || true,
+        imageLink:uploadedImageURL
     });
 
-    return res.status(201).json(new ApiResponse(
-                201,
+    return res.status(200).json(new ApiResponse(
+                200,
                 itemResponse,
                 'Menu Item created successfully'
             )
@@ -208,14 +206,12 @@ export const updateMenuItem = asyncHandler(async (req:UserRequest,res:Response) 
     if(!itemId){
         throw new ApiError(400, 'Item Id is required');
     }
+    
     const updatedItem = await updateMenuItemService(itemId,{
         name: name,
         description: description,
         price: price,
-        flags: {
-            isAvailable: isAvailable || true
-        },
-        
+        isAvailable: Boolean(isAvailable) || true
     })
 
     return res.status(200).json(new ApiResponse(200,updatedItem,'Menu Item updated successfully'))
@@ -226,12 +222,12 @@ export const updateMenuItemImage = asyncHandler(async (req:UserRequest,res:Respo
     const { itemId } = req.params;
     const localImage = req?.file;
     if(!localImage){
-        return res.status(400).json(new ApiError(400,'Image is required'));
+        throw new ApiError(400,'Image is required');
     }
     const item = await MenuItem.findById(itemId,"-__v -restaurant -createdAt -updatedAt");
     const oldImageLink = item?.imageLink;
     if(!item){
-        return res.status(404).json(new ApiError(404,'Item not found'));
+        throw new ApiError(404,'Item not found');
     }
     uploadImageToS3(localImage,oldImageLink).then(async (imageUrl):Promise<void>=> {
         if(!oldImageLink){

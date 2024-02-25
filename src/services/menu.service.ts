@@ -120,9 +120,10 @@ export const createMenuCategoryService = async function (
             description: data.description,
         });
         redisClient.del(`menu:public:${category.restaurant}`);
+        redisClient.del(`menu:categories:${category.restaurant}`);
         return category;
     } catch (error) {
-        throw error;
+        throw new ApiError(500, '', error);
     }
 };
 

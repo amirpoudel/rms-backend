@@ -18,8 +18,6 @@ const corsOptions = {
     }
   },
   credentials: true,
-
-  
 };
 
 // Use CORS middleware with the specified options

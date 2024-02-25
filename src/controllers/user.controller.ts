@@ -86,10 +86,10 @@ export const registerUserWithRestaurant = asyncHandler(
         }
 
         return res
-            .status(201)
+            .status(200)
             .json(
                 new ApiResponse(
-                    201,
+                    200,
                     null,
                     'Restaurant and owner created successfully'
                 )

@@ -18,13 +18,11 @@ export interface IMenuItem{
     price:number,
     discountPercentage?:number,
     description:string,
-    flags?:{
-        isVeg?:boolean,
-        containsEggs?:boolean,
-        isSpecial?:boolean,
-        isRecommended?:boolean,
-        isAvailable?:boolean,
-    },
+    isVeg?:boolean,
+    containsEggs?:boolean,
+    isSpecial?:boolean,
+    isRecommended?:boolean,
+    isAvailable?:boolean,
     imageLink?: string|null,
 }
 
@@ -87,29 +85,27 @@ const menuItemSchema = new mongoose.Schema<IMenuItem>({
         type:String,
         trim:true,
     },
-
-    flags:{
-        isVeg: {
-            type: Boolean,
-            default: false,
-        },
-        containsEggs: {
-            type: Boolean,
-            default: false,
-        },
-        isSpecial: {
-            type: Boolean,
-            default: false,
-        },
-        isRecommended: {
-            type: Boolean,
-            default: false,
-        }, 
-        isAvailable: {
-            type: Boolean,
-            default: true,
-        },
+    isVeg: {
+        type: Boolean,
+        default: false,
     },
+    containsEggs: {
+        type: Boolean,
+        default: false,
+    },
+    isSpecial: {
+        type: Boolean,
+        default: false,
+    },
+    isRecommended: {
+        type: Boolean,
+        default: false,
+    }, 
+    isAvailable: {
+        type: Boolean,
+        default: true,
+    },
+    
     imageLink: {
         type: String,
 
