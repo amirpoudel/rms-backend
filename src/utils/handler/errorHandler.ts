@@ -8,8 +8,7 @@ import { MulterError } from 'multer';
 
 
 export const errorHandler = (err: Errback, req: Request, res: Response, next: NextFunction) => {
-    console.log(err);
-    logger.error(err);
+    logger.info(err);
     //if req.file then delete it 
     if(req.file){
         if(fs.existsSync(req.file.path)){
