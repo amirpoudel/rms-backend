@@ -110,6 +110,9 @@ export const loginUser = asyncHandler(async (req: Request, res: Response) => {
     // find user by email or phone
 
     let response = await loginUserService({ email, phone, password });
+    if (!response) {
+        throw new ApiError(400, 'Invalid email or phone');
+    }
 
     return res
         .status(200)

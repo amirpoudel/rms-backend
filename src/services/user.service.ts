@@ -86,13 +86,14 @@ export const registerUserWithRestaurantService = async function (
 
 
 
-export const loginUserService = async function (data:UserLogin):Promise<UserLoginResponse>{
+export const loginUserService = async function (data:UserLogin):Promise<UserLoginResponse|null>{
     const {email, phone, password} = data;
    try {
      const user = await User.findOne({$or: [{email}, {phone}]});
-     if(!user) {
-         throw new ApiError(404, "User not found");
-     }
+
+        if(!user) {
+            return null;
+        }
  
      // check password
      const isPasswordMatch = await user.comparePassword(password);

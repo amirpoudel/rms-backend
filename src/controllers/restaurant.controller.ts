@@ -8,6 +8,8 @@ import mongoose from "mongoose";
 import ApiError from "../utils/handler/ApiError";
 import { convertSlug, getLimitAndOffset } from "../utils/helper";
 import { getAllRestaurantService } from "../services/restaurant.service";
+import { UserRequest } from "../types/express.type";
+import { uploadImageToS3 } from "../utils/aws/s3.aws";
 
 export const checkRestaurantSlug = asyncHandler(async (req: Request, res: Response,next:NextFunction) => {
     const restaurantSlug = req.params.restaurantSlug;
@@ -69,3 +71,25 @@ export const getAllRestaurants = asyncHandler(async (req: Request, res: Response
     return res.status(200).json(new ApiResponse(200, restaurants, 'Restaurants found'));
 
 });
+
+export const updateRestaurantImage = asyncHandler(async (req: UserRequest, res: Response) => {
+    const restaurantId = req.user.restaurant;
+
+    const restaurantImage = req?.file;
+    if(!restaurantImage){
+        throw new ApiError(400, 'Image is required');
+    }
+    const restaurant = await Restaurant.findById(restaurantId);
+    if(!restaurant){
+        throw new ApiError(404, 'Restaurant not found');
+    }
+    const oldImageLink = restaurant.profileImage;
+
+    uploadImageToS3(restaurantImage,oldImageLink).then(async (imageUrl):Promise<void>=> {
+        if(!oldImageLink){
+            restaurant.profileImage = imageUrl as string;
+            await restaurant.save();
+        }
+    })
+    return res.status(200).json(new ApiResponse(200, null, 'Restaurant image updated successfully'));
+})
