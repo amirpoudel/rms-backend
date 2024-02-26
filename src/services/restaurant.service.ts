@@ -25,7 +25,7 @@ export const getAllRestaurantService = async (
             .skip(offset);
         return restaurants;
     } catch (error) {
-        throw error
+        throw new ApiError(500, '', error);
     }
 };
 
@@ -45,6 +45,6 @@ export const updateRestaurantService = async (
 
         return restaurant;
     } catch (error) {
-        throw error;
+        throw new ApiError(500, '', error);
     }
 };

@@ -4,6 +4,7 @@ import ApiResponse from './ApiResponse';
 import { logger } from '../logs/winston';
 import { MongooseError } from 'mongoose';
 import fs from 'fs';
+import { MulterError } from 'multer';
 
 
 export const errorHandler = (err: Errback, req: Request, res: Response, next: NextFunction) => {
@@ -23,6 +24,20 @@ export const errorHandler = (err: Errback, req: Request, res: Response, next: Ne
         return res.status(err.statusCode).json(apiResponse);
         
     }
+
+    if( err instanceof MulterError){
+        
+        if(err.code === 'LIMIT_FILE_SIZE'){
+            return res.status(400).json(new ApiResponse(400,null,'Please Upload Less than 1mb',false));
+        }
+        if(err.code === 'LIMIT_UNEXPECTED_FILE'){
+            return res.status(400).json(new ApiResponse(400,null,'Too many files uploaded',false));
+        }
+
+    }
+ 
+   
+    return res.status(500).json(new ApiResponse(500, null, 'Internal server error', false));
     
 
    

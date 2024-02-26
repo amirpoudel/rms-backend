@@ -11,7 +11,7 @@ import {
     registerUserWithRestaurantService,
 } from '../services/user.service';
 import { UserRequest } from '../types/express.type';
-import { isEmailValid, isPasswordValid, isPhoneValid } from '../utils/helper';
+import { isEmailValid, isPasswordValid, isPhoneValid, isValidString } from '../utils/helper';
 import { uploadImageToS3 } from '../utils/aws/s3.aws';
 import { updateRestaurantService } from '../services/restaurant.service';
 
@@ -36,6 +36,9 @@ export const registerUserWithRestaurant = asyncHandler(
             !password
         ) {
             throw new ApiError(400, 'All fields are required');
+        }
+        if(!isValidString(restaurantName) || !isValidString(ownerName)){
+            throw new ApiError(400, 'Only alphabets and spaces are allowed');
         }
         if (!isEmailValid(ownerEmail)) {
             throw new ApiError(400, 'Invalid email');

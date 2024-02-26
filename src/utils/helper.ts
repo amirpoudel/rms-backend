@@ -25,6 +25,15 @@ export function isPhoneValid(phone: string): boolean {
     return nepaliMobileNumberRegex.test(phone);
 }
 
+export function isValidString(input: string): boolean {
+    // Regular expression to match only plain strings (no numbers, special characters, or hyphens)
+    const regex = /^[a-zA-Z\s]+$/; // This regex matches only alphabetic characters and whitespace
+
+    // Test the input against the regex
+    return regex.test(input);
+}
+
+
 export function getLimitAndOffset(query:any,maxLimit:number=20):{limit:number,offset:number} {
     
     let page, limit, offset;
@@ -41,6 +50,8 @@ export function getLimitAndOffset(query:any,maxLimit:number=20):{limit:number,of
     offset = Number((page - 1)) * Number(limit);
     return {limit,offset};
   }
+
+
 
 
 

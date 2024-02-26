@@ -115,6 +115,7 @@ const menuItemSchema = new mongoose.Schema<IMenuItem>({
     timestamps:true
 })
 
+menuItemSchema.index({ restaurant: 1,name: 1 }, { unique: true });
 
 const MenuCategory = mongoose.model<IMenuCategory>("MenuCategory",menuCategorySchema);
 const MenuItem = mongoose.model<IMenuItem>("MenuItem",menuItemSchema);

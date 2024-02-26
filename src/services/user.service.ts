@@ -118,7 +118,7 @@ export const loginUserService = async function (data:UserLogin):Promise<UserLogi
         }
 
    } catch (error) {
-    throw error;
+    throw new ApiError(500, '', error);
    }
 }
 
@@ -132,7 +132,7 @@ export const logoutUserService = async function (userId:mongoose.Schema.Types.Ob
         await user.save();
         return true;
     } catch (error) {
-        throw error;
+        throw new ApiError(500, '', error);
     }
 }
 
@@ -149,6 +149,6 @@ export const forgetPasswordService = async function (data:{email?:string,phone?:
         await user.save();
         return resetToken;
     } catch (error) {
-        throw error;
+        throw new ApiError(500, '', error);
     }
 }

@@ -140,7 +140,7 @@ export const deleteMenuCategory = asyncHandler(async (req: UserRequest, res: Res
     const { categoryId } = req.params;
     const restaurantId = req.user.restaurant;
     if(!categoryId){
-        return res.status(400).json(new ApiError(400,'Category Id is required'));
+        throw new ApiError(400, 'Category Id is required');
     }
     
     const isDeleted = await deleteMenuCategoryService(categoryId,restaurantId);
@@ -164,16 +164,10 @@ export const createMenuItem = asyncHandler(async (req: UserRequest, res: Respons
     const localImage = req?.file;
 
     if(!categoryId || !name || !price) {
-        return res
-            .status(400)
-            .json(
-                new ApiError(
-                    400,
-                    'Category, Item name and price are required'
-                )
-            );
+        throw new ApiError(400, 'Category Id, Name and Price are required');
     }
-    const uploadedImageURL = localImage ? await uploadImageToS3(localImage) : null;
+    //convert this into .then and .catch
+    
 
     const itemResponse = await createMenuItemService({
         restaurant: restaurantId,
@@ -182,8 +176,13 @@ export const createMenuItem = asyncHandler(async (req: UserRequest, res: Respons
         description: description,
         price: price,
         isAvailable: isAvailable || true,
-        imageLink:uploadedImageURL
+        imageLink:null
     });
+    if(itemResponse && itemResponse._id && localImage){
+        uploadImageToS3(localImage).then(async (imageUrl):Promise<void> => {
+            await updateMenuItemImageService(itemResponse._id as unknown as string,imageUrl as string);
+        })
+    }
 
     return res.status(200).json(new ApiResponse(
                 200,

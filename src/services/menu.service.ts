@@ -47,7 +47,7 @@ export const checkMenuCategoryService = async function (
         );
         return true;
     } catch (error) {
-        throw error;
+        throw new ApiError(500, '', error);
     }
 };
 
@@ -77,7 +77,7 @@ export const checkMenuItemService = async function (
         redisClient.set(`menu:item:${itemId}`, JSON.stringify(cachedResponse));
         return true;
     } catch (error) {
-        throw error;
+        throw new ApiError(500, '', error);
     }
 };
 
@@ -107,7 +107,7 @@ export const checkRestaurantSlugService = async function (
             _id: restaurant._id.toString(),
         };
     } catch (error) {
-        throw error;
+        throw new ApiError(500, '', error);
     }
 };
 
@@ -175,16 +175,20 @@ export const getMenuService = async function (
 export const getMenuItemsByCategoryService = async function (
     restaurant:string,category:string
 ): Promise<IMenuItem[]> {
-    const menu = await MenuItem.find(
-        {   
-            restaurant: restaurant,
-            category: category,
-
-        },
-        '-__v -restaurant -createdAt -updatedAt'
-    )
-
-    return menu;
+    try {
+        const menu = await MenuItem.find(
+            {   
+                restaurant: restaurant,
+                category: category,
+    
+            },
+            '-__v -restaurant -createdAt -updatedAt'
+        )
+    
+        return menu;
+    } catch (error) {
+        throw new ApiError(500, '', error);
+    }
 };
 
 export const getMenuCategoriesService = async function (
@@ -210,7 +214,7 @@ export const getMenuCategoriesService = async function (
         );
         return menuCategories;
     } catch (error) {
-        throw error;
+        throw new ApiError(500, '', error);
     }
 };
 
@@ -238,7 +242,7 @@ export const updateMenuCategoryService = async function (
         redisClient.del(`menu:public:${category.restaurant}`);
         return category;
     } catch (error) {
-        throw error;
+        throw new ApiError(500, '', error);
     }
 };
 
@@ -267,7 +271,7 @@ export const deleteMenuCategoryService = async function (
         redisClient.del(`menu:public:${category.restaurant}`);
         return true;
     } catch (error) {
-        throw error;
+        throw new ApiError(500, '', error);
     }
 };
 
@@ -279,7 +283,7 @@ export const createMenuItemService = async function (
         redisClient.del(`menu:public:${item.restaurant}`);
         return item;
     } catch (error) {
-        throw error;
+        throw new ApiError(500, '', error);
     }
 };
 
@@ -301,12 +305,12 @@ export const updateMenuItemService = async function (
         redisClient.del(`menu:public:${item.restaurant}`);
         return item;
     } catch (error) {
-        throw error;
+        throw new ApiError(500, '', error);
     }
 };
 
 export const updateMenuItemImageService = async function (
-    itemId: Schema.Types.ObjectId,
+    itemId:string,
     imageLink: string
 ): Promise<IMenuItem> {
     try {
@@ -325,6 +329,6 @@ export const updateMenuItemImageService = async function (
 
         return item;
     } catch (error) {
-        throw error;
+        throw new ApiError(500, '', error);
     }
 };

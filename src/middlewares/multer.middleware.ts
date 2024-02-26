@@ -3,13 +3,10 @@ import fs from 'fs';
 import path from 'path';
 
 function generateUniqueFileName(req:any, file:any, cb:Function) {
-    // Generate a timestamp
+    
     const timestamp = Date.now();
-    // Extract the original file extension
     const fileExtension = file.originalname.split('.').pop();
-    // Construct the unique file name using the current date and time
     const uniqueFileName = `rms-${timestamp}.${fileExtension}`;
-    // Call the callback with the unique file name
     cb(null, uniqueFileName);
 }
 
@@ -53,6 +50,6 @@ export const upload = multer({
     storage: storage,
     fileFilter: fileFilter,
     limits: {
-        fileSize: 1024 * 1024 * 1, // 1MB
+        fileSize: 1024 * 1024 * 5, // 1MB
     },
 });
