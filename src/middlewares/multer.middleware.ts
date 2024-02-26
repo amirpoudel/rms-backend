@@ -11,15 +11,7 @@ function generateUniqueFileName(req:any, file:any, cb:Function) {
 }
 
 
-// Function to ensure the destination directory exists
-const ensureDestinationDirectory = (destination:string) => {
-    const directory = path.dirname(destination);
-    if (!fs.existsSync(directory)) {
-        console.log(`Creating directory: ${directory}`);
-        fs.mkdirSync(directory, { recursive: true });
-    }
-};
-
+//
 
 const fileFilter = function (req:any, file:any, cb:Function) {
     // Accept only files with mime types image/jpeg, image/png, or image/gif
@@ -31,14 +23,16 @@ const fileFilter = function (req:any, file:any, cb:Function) {
     ) {
         cb(null, true);
     } else {
-        cb(new Error('Only JPEG, PNG, or GIF files are allowed!'), false);
+        cb(new Error('Only JPEG , JPG, PNG, or GIF files are allowed!'), false);
     }
 };
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         const destinationPath = "./public/temp/images"; // Relative path for demonstration
-        ensureDestinationDirectory(destinationPath);
+        if (!fs.existsSync(destinationPath)) {
+            fs.mkdirSync(destinationPath, { recursive: true });
+        }
         cb(null, destinationPath);
     },
     filename: generateUniqueFileName,

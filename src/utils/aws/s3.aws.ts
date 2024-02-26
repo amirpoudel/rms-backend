@@ -41,7 +41,7 @@ export async function uploadImageToS3(file: any, existingLink: string | null = n
         // Upload image to S3
         const uploadParams = {
             Bucket: process.env.AWS_PUBLIC_BUCKET_NAME || '',
-            Key: file.originalname,
+            Key: file.filename,
             Body: compressBuffer,
             ContentType: file.mimetype,
         };
