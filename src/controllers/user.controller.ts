@@ -14,6 +14,7 @@ import { UserRequest } from '../types/express.type';
 import { isEmailValid, isPasswordValid, isPhoneValid, isValidString } from '../utils/helper';
 import { uploadImageToS3 } from '../utils/aws/s3.aws';
 import { updateRestaurantService } from '../services/restaurant.service';
+import { sendEmail } from '../utils/queues/producer.queue';
 
 export const registerUserWithRestaurant = asyncHandler(
     async (req: Request, res: Response) => { 
@@ -113,6 +114,12 @@ export const loginUser = asyncHandler(async (req: Request, res: Response) => {
     if (!response) {
         throw new ApiError(400, 'Invalid email or phone');
     }
+    //for testing - remove later
+    sendEmail({
+        to:"amirpoudel2058@gmail.com",
+        subject:"Login",
+        body:"You have logged in successfully. If this was not you, please contact us."
+    })
 
     return res
         .status(200)
