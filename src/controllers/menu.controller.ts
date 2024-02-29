@@ -230,8 +230,7 @@ export const updateMenuItemImage = asyncHandler(async (req:UserRequest,res:Respo
     }
     uploadImageToS3(localImage,oldImageLink).then(async (imageUrl):Promise<void>=> {
         if(!oldImageLink){
-            item.imageLink = imageUrl as string;
-            await item.save();
+           await updateMenuItemImageService(item._id.toString(),imageUrl as string);
         }
     })
     let response = item.toJSON();

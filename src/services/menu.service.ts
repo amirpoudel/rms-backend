@@ -176,6 +176,10 @@ export const getMenuItemsByCategoryService = async function (
     restaurant:string,category:string
 ): Promise<IMenuItem[]> {
     try {
+        const cachedMenu = await redisClient.get(`menu:${restaurant}:${category}`);
+        if (cachedMenu) {
+            return JSON.parse(cachedMenu);
+        }
         const menu = await MenuItem.find(
             {   
                 restaurant: restaurant,
@@ -184,7 +188,7 @@ export const getMenuItemsByCategoryService = async function (
             },
             '-__v -restaurant -createdAt -updatedAt'
         )
-    
+        redisClient.set(`menu:${restaurant}:${category}`, JSON.stringify(menu));
         return menu;
     } catch (error) {
         throw new ApiError(500, '', error);
@@ -303,6 +307,7 @@ export const updateMenuItemService = async function (
             throw new Error('Menu Item not found');
         }
         redisClient.del(`menu:public:${item.restaurant}`);
+        redisClient.del(`menu:${item.restaurant}:${item.category}`);
         return item;
     } catch (error) {
         throw new ApiError(500, '', error);
@@ -314,6 +319,7 @@ export const updateMenuItemImageService = async function (
     imageLink: string
 ): Promise<IMenuItem> {
     try {
+        
         const item = await MenuItem.findByIdAndUpdate(
             {
                 _id: itemId,
@@ -326,6 +332,8 @@ export const updateMenuItemImageService = async function (
         if (!item) {
             throw new Error('Menu Item not found');
         }
+        redisClient.del(`menu:public:${item.restaurant}`);
+        redisClient.del(`menu:${item.restaurant}:${item.category}`);
 
         return item;
     } catch (error) {
