@@ -3,6 +3,7 @@ import mongoose, { Schema, mongo } from "mongoose";
 import { IRestaurant, Restaurant } from "../models/restaurant.model";
 import { IUser, User } from "../models/user.model";
 import ApiError from "../utils/handler/ApiError";
+import { ResetPassword } from "../types/user.type";
 
 
 
@@ -149,6 +150,38 @@ export const forgetPasswordService = async function (data:{email?:string,phone?:
         const resetToken = user.generatePasswordResetToken();
         await user.save();
         return resetToken;
+    } catch (error) {
+        throw new ApiError(500, '', error);
+    }
+}
+
+
+export const resetPasswordService = async function (data:ResetPassword){
+    const {email,phone,token,password} = data;
+    try {
+        const user = await User.findOne({$or: [{email}, {phone}]});
+        if(!user) {
+            throw new ApiError(404, "User not found");
+        }
+        if(!user.passwordReset.token || !user.passwordReset.expiry) {
+            throw new ApiError(400, "Please request for password reset token first");
+        }
+        if(user.passwordReset.token !== token) {
+            throw new ApiError(400, "Invalid token");
+        }
+        if(user.passwordReset.expiry < new Date()) {
+            user.passwordReset.token = null;
+            user.passwordReset.expiry = null;
+            await user.save();
+            throw new ApiError(400, "Token expired");
+
+
+        }
+        user.password = password;
+        user.passwordReset.token = "";
+        user.passwordReset.expiry = new Date();
+        await user.save();
+        return true
     } catch (error) {
         throw new ApiError(500, '', error);
     }

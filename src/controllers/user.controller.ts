@@ -9,12 +9,14 @@ import {
     loginUserService,
     logoutUserService,
     registerUserWithRestaurantService,
+    resetPasswordService,
 } from '../services/user.service';
 import { UserRequest } from '../types/express.type';
 import { isEmailValid, isPasswordValid, isPhoneValid, isValidString } from '../utils/helper';
 import { uploadImageToS3 } from '../utils/aws/s3.aws';
 import { updateRestaurantService } from '../services/restaurant.service';
 import { sendEmail } from '../utils/queues/producer.queue';
+
 
 export const registerUserWithRestaurant = asyncHandler(
     async (req: Request, res: Response) => { 
@@ -191,4 +193,34 @@ export const forgetPassowrd = asyncHandler(
     }
 );
 
-export const resetPassowrd = 
+export const resetPassowrd = asyncHandler((req:Request, res:Response) => {
+
+    const {email,token,password} = req.body;
+    if(!token || !email || !password){
+        throw new ApiError(400,'Bad Request All fields are required');
+    }
+
+    if(!isPasswordValid(password)){
+        throw new ApiError(400,'Password must be at least 8 characters long and contain at least one letter and one number');
+    }
+
+    // reset password
+    const isResetSuccess = resetPasswordService({
+        email,
+        token,
+        password,
+    });
+    if(!isResetSuccess){
+        throw new ApiError(500,'Error resetting password');
+    }
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                null,
+                'Password reset successfully'
+            )
+        );
+
+});
