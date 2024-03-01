@@ -73,8 +73,12 @@ const userSchema = new mongoose.Schema<IUser>({
         type:String,
     },
     passwordReset : {
-        token:String,
-        expiry:Date
+        token:{
+            type:String,
+        },
+        expiry:{
+            type:Date,
+        }
     }
 
 })

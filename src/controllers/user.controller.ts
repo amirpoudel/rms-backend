@@ -114,12 +114,7 @@ export const loginUser = asyncHandler(async (req: Request, res: Response) => {
     if (!response) {
         throw new ApiError(400, 'Invalid email or phone');
     }
-    //for testing - remove later
-    sendEmail({
-        to:"amirpoudel2058@gmail.com",
-        subject:"Login",
-        body:"You have logged in successfully. If this was not you, please contact us."
-    })
+   
 
     return res
         .status(200)
@@ -128,12 +123,14 @@ export const loginUser = asyncHandler(async (req: Request, res: Response) => {
             httpOnly: true,
             secure: true, 
             sameSite: 'none',
+            expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30 * 4),
         })
         .cookie('refreshToken', response.refreshToken,{
             path: '/',
             httpOnly: true,
             secure: true,
             sameSite: 'none',
+            expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30 * 4),
         } )
         .json(new ApiResponse(200, response, 'Login successful'));
 });
@@ -174,7 +171,14 @@ export const forgetPassowrd = asyncHandler(
 
         const resetToken = await forgetPasswordService({ email, phone });
         // send reset password token to email or phone
-
+        const message = `Your reset password token is ${resetToken}`;
+        if(email){
+            sendEmail({
+                to:email,
+                subject:"Reset Password Token",
+                body:message
+            });
+        }
         return res
             .status(200)
             .json(
@@ -186,3 +190,5 @@ export const forgetPassowrd = asyncHandler(
             );
     }
 );
+
+export const resetPassowrd = 
