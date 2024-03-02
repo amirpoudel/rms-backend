@@ -186,3 +186,27 @@ export const resetPasswordService = async function (data:ResetPassword){
         throw new ApiError(500, '', error);
     }
 }
+
+
+export const changePasswordService = async function (userId:string, data:{oldPassword:string,newPassword:string}):Promise<boolean>{
+    const {oldPassword, newPassword} = data;
+
+    try {
+        const user = await User.findById(userId);
+        if(!user) {
+            throw new ApiError(404, "User not found");
+        }
+        const isPasswordMatch = await user.comparePassword(oldPassword);
+        if(!isPasswordMatch) {
+            throw new ApiError(400, "Old password is incorrect");
+        }
+        user.password = newPassword;
+        await user.save();
+    
+        return true;
+    } catch (error) {
+        throw new ApiError(500, '', error);
+    }
+
+}
+

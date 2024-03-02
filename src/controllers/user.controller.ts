@@ -5,6 +5,7 @@ import { COOKIE_OPTIONS, USER_ROLE } from '../constant';
 import { Request, Response } from 'express';
 import _ from 'lodash';
 import {
+    changePasswordService,
     forgetPasswordService,
     loginUserService,
     logoutUserService,
@@ -224,3 +225,32 @@ export const resetPassowrd = asyncHandler((req:Request, res:Response) => {
         );
 
 });
+
+export const changePassword = asyncHandler((req:UserRequest,res:Response)=>{
+    const {oldPassword,newPassword} = req.body;
+    const userId = req.user._id;
+    if(!oldPassword || !newPassword){
+        throw new ApiError(400,'All fields are required');
+    }
+    if(!isPasswordValid(newPassword)){
+        throw new ApiError(400,'Password must be at least 8 characters long and contain at least one letter and one number');
+    }
+    
+    // change password 
+    const isChanged = changePasswordService(userId.toString(),{
+        oldPassword,
+        newPassword
+    })
+    if(!isChanged){
+        throw new ApiError(500,'Error changing password');
+    }
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                null,
+                'Password reset successfully'
+            )
+        );
+})
