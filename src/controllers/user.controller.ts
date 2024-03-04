@@ -11,6 +11,7 @@ import {
     logoutUserService,
     registerUserWithRestaurantService,
     resetPasswordService,
+    updateProfileService,
 } from '../services/user.service';
 import { UserRequest } from '../types/express.type';
 import { isEmailValid, isPasswordValid, isPhoneValid, isValidString } from '../utils/helper';
@@ -254,3 +255,32 @@ export const changePassword = asyncHandler((req:UserRequest,res:Response)=>{
             )
         );
 })
+
+
+export const updateProfile = asyncHandler((req:UserRequest,res:Response)=>{
+    const {name,phone} = req.body;
+    const userId = req.user._id;
+
+    if(!name && !phone){
+        throw new ApiError(400,'All fields are required');
+    }
+
+    if(name && !isValidString(name)){
+        throw new ApiError(400,'Only alphabets and spaces are allowed');
+    }
+    if(phone && !isPhoneValid(phone)){
+        throw new ApiError(400,'Invalid phone number');
+    }
+
+    // update profile 
+    const isUpdated = updateProfileService(userId.toString(),{
+        name: name as string,
+        phone: phone as string
+    })
+    if(!isUpdated){
+        throw new ApiError(500,'Error updating profile');
+    }
+    return res.status(200).json(new ApiResponse(200,null,'Profile updated successfully'));
+
+})
+

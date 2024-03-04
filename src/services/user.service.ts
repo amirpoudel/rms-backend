@@ -210,3 +210,17 @@ export const changePasswordService = async function (userId:string, data:{oldPas
 
 }
 
+export const updateProfileService = async function (userId:string, data:{name:string,phone:string}):Promise<IUser>{
+    const {name, phone} = data;
+
+    try {
+        const  user = await User.findByIdAndUpdate(userId, {name, phone}, {new: true});
+        if(!user) {
+            throw new ApiError(404, "User not found");
+        }
+        return user;
+    }catch (error) {
+        throw new ApiError(500, '', error);
+    }
+}
+
