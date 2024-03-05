@@ -284,3 +284,20 @@ export const updateProfile = asyncHandler((req:UserRequest,res:Response)=>{
 
 })
 
+export const updateProfileImage = asyncHandler((req:UserRequest,res:Response)=>{
+    const userId = req.user._id;
+    const profileImage = req.file;
+    if(!profileImage){
+        throw new ApiError(400,'Profile image is required');
+    }
+
+    // upload image to s3
+    uploadImageToS3(profileImage).then(
+        async (url): Promise<void> => {
+           
+        }
+    );
+
+    return res.status(200).json(new ApiResponse(200,null,'Profile image updated successfully'));
+})
+
