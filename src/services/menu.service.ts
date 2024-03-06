@@ -138,33 +138,41 @@ export const getMenuService = async function (
         }
         const menu = await MenuCategory.aggregate([
             {
-                $match: { restaurant:new mongoose.Types.ObjectId(restaurant.toString()) }, // Filter categories by restaurant
+                $match: {
+                    restaurant: new mongoose.Types.ObjectId(restaurant.toString()) // Filter categories by restaurant
+                }
             },
             {
                 $lookup: {
                     from: 'menuitems', // Name of the MenuItem collection
                     localField: '_id', // Field from MenuCategory collection
                     foreignField: 'category', // Field from MenuItem collection
-                    as: 'items', // Field to populate with matched documents
-                },
+                    as: 'items' // Field to populate with matched documents
+                }
             },
-           {
-            $project:{
-                name:1,
-                description:1,
-                imageLink:1,
-                itemsCount:1,
-                items:{
-                    _id:1,
-                    name:1,
-                    description:1,
-                    price:1,
-                    imageLink:1,
-                    flags:1
+            {
+                $sort: {
+                    createdAt: 1 // Sort by createdAt field in descending order
+                }
+            },
+            {
+                $project: {
+                    name: 1,
+                    description: 1,
+                    imageLink: 1,
+                    itemsCount: 1,
+                    items: {
+                        _id: 1,
+                        name: 1,
+                        description: 1,
+                        price: 1,
+                        imageLink: 1,
+                        flags: 1
+                    }
                 }
             }
-        }
         ]);
+        
         redisClient.set(`menu:public:${restaurant}`, JSON.stringify(menu));
         return menu;
     } catch (error) {
