@@ -9,6 +9,7 @@ import {
     forgetPasswordService,
     loginUserService,
     logoutUserService,
+    refreshTokenService,
     registerUserWithRestaurantService,
     resetPasswordService,
     updateProfileService,
@@ -299,5 +300,28 @@ export const updateProfileImage = asyncHandler((req:UserRequest,res:Response)=>{
     );
 
     return res.status(200).json(new ApiResponse(200,null,'Profile image updated successfully'));
+});
+
+export const refreshToken = asyncHandler((req:UserRequest,res:Response)=>{
+    const refreshToken = req.cookies.refreshToken;
+    const userId = req.user._id;
+    if(!refreshToken){
+        throw new ApiError(400,'Refresh token is required');
+    }
+    // verify refresh token
+    const newRrefreshToken = refreshTokenService(userId.toString(),refreshToken);
+    if(!newRrefreshToken){
+        throw new ApiError(400,'Invalid refresh token');
+    }
+    return res
+        .status(200)
+        .cookie('accessToken',newRrefreshToken, {
+            path: '/',
+            httpOnly: true,
+            secure: true, 
+            sameSite: 'none',
+            expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30 * 4),
+        })
+        .json(new ApiResponse(200, newRrefreshToken, 'Token refreshed successfully'));
 })
 
