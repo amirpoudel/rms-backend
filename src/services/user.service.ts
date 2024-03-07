@@ -224,3 +224,26 @@ export const updateProfileService = async function (userId:string, data:{name:st
     }
 }
 
+
+export const refreshTokenService = async function (userId:string,refreshTokenInput:string):Promise<string>{
+
+    try {
+        const user = await User.findById(userId);
+        if(!user) {
+            throw new ApiError(404, "User not found");
+        }
+        if(user.refreshToken !== refreshTokenInput) {
+            throw new ApiError(400, "Invalid refresh token");
+        }
+        const refreshToken = await user.generateRefreshToken();
+        if(!refreshToken) {
+            throw new ApiError(500, "Error generating access token");
+        }
+        await user.save();
+        return refreshToken;
+    } catch (error) {
+        throw new ApiError(500, '', error);
+    }
+
+}
+
