@@ -93,3 +93,16 @@ export const updateRestaurantImage = asyncHandler(async (req: UserRequest, res: 
     })
     return res.status(200).json(new ApiResponse(200, null, 'Restaurant image updated successfully'));
 })
+
+export const updateRestaurant = asyncHandler(async (req: UserRequest, res: Response) => {
+    const restaurantId = req.user.restaurant;
+    const { restaurantName } = req.body;
+    if(!restaurantName){
+        throw new ApiError(400, 'Restaurant name is required');
+    }
+    const restaurant = await Restaurant.findByIdAndUpdate(restaurantId, {name:restaurantName}, {new:true});
+    if(!restaurant){
+        throw new ApiError(404, 'Restaurant not found');
+    }
+    return res.status(200).json(new ApiResponse(200, restaurant, 'Restaurant updated successfully'));
+})
